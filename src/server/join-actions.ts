@@ -1,9 +1,23 @@
 "use server";
 
+import { parseForm } from "@/lib/validation/form";
+import { joinCodeSchema } from "@/lib/validation/schemas";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export type JoinActionState = { error?: string; successBucketId?: string };
+export type JoinActionState = {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  successBucketId?: string;
+  rebalanceHint?: boolean;
+};
+
+function mapJoinRpcError(message: string): string {
+  if (message.includes("GH_NOT_AUTHENTICATED")) return "Not signed in.";
+  if (message.includes("GH_INVALID_CODE")) return "No shared bucket matches that code.";
+  if (message.includes("GH_ALREADY_MEMBER")) return "You are already in this bucket.";
+  return message || "Could not join bucket.";
+}
 
 export async function joinBucketByCode(
   _prev: JoinActionState,
@@ -15,20 +29,29 @@ export async function joinBucketByCode(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not signed in." };
 
-  const raw = String(formData.get("code") || "").trim();
-  if (!/^[0-9]{6}$/.test(raw)) return { error: "Enter a 6-digit code." };
+  const parsed = parseForm(joinCodeSchema, {
+    code: String(formData.get("code") ?? "").trim(),
+  });
+  if (!parsed.ok) return { fieldErrors: parsed.fieldErrors };
 
-  const { data, error } = await supabase.rpc("join_bucket_by_code", { p_code: raw });
+  const { data, error } = await supabase.rpc("join_bucket_by_code", { p_code: parsed.data.code });
 
   if (error) {
-    const msg = error.message || "";
-    if (msg.includes("already_member")) return { error: "You are already a member of this bucket." };
-    if (msg.includes("invalid_code")) return { error: "No shared bucket matches that code." };
-    return { error: msg || "Could not join bucket." };
+    return { error: mapJoinRpcError(error.message ?? "") };
   }
 
   const bucketId = data as string;
+
+  const { data: members } = await supabase
+    .from("bucket_members")
+    .select("share_percent")
+    .eq("bucket_id", bucketId);
+
+  const sum = members?.reduce((s, m) => s + Number(m.share_percent), 0) ?? 0;
+  const rebalanceHint = Math.abs(sum - 100) > 0.01;
+
   revalidatePath("/app/shared");
   revalidatePath("/app/buckets");
-  return { successBucketId: bucketId };
+  revalidatePath(`/app/buckets/${bucketId}`);
+  return { successBucketId: bucketId, rebalanceHint };
 }

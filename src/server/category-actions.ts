@@ -1,10 +1,12 @@
 "use server";
 
 import { slugify } from "@/lib/slugify";
+import { parseForm } from "@/lib/validation/form";
+import { categoryCreateSchema } from "@/lib/validation/schemas";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export type CategoryActionState = { error?: string };
+export type CategoryActionState = { error?: string; fieldErrors?: Record<string, string> };
 
 export async function createUserCategory(
   _prev: CategoryActionState,
@@ -16,21 +18,24 @@ export async function createUserCategory(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not signed in." };
 
-  const name = String(formData.get("name") || "").trim();
-  if (!name) return { error: "Name is required." };
+  const parsed = parseForm(categoryCreateSchema, {
+    name: String(formData.get("name") ?? ""),
+  });
+  if (!parsed.ok) return { fieldErrors: parsed.fieldErrors };
 
-  const base = slugify(name) || "category";
+  const base = slugify(parsed.data.name) || "category";
   const slug = `${base}-${crypto.randomUUID().slice(0, 8)}`;
 
   const { error } = await supabase.from("categories").insert({
-    name,
+    name: parsed.data.name,
     slug,
     created_by_user_id: user.id,
     is_system: false,
   });
 
   if (error) {
-    if (error.code === "23505") return { error: "A category with a similar id already exists. Try again." };
+    if (error.code === "23505")
+      return { error: "A category with a similar id already exists. Try again." };
     return { error: error.message };
   }
 

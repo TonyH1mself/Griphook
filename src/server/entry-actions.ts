@@ -1,46 +1,107 @@
 "use server";
 
+import { parseForm } from "@/lib/validation/form";
+import { entrySchema } from "@/lib/validation/schemas";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export type EntryActionState = { error?: string };
+export type EntryActionState = { error?: string; fieldErrors?: Record<string, string> };
 
-export async function createEntry(_prev: EntryActionState, formData: FormData): Promise<EntryActionState> {
+function bucketIdFromForm(formData: FormData) {
+  const raw = String(formData.get("bucket_id") ?? "");
+  return raw && raw !== "none" ? raw : undefined;
+}
+
+export async function createEntry(
+  _prev: EntryActionState,
+  formData: FormData,
+): Promise<EntryActionState> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not signed in." };
 
-  const transaction_type = formData.get("transaction_type") === "income" ? "income" : "expense";
-  const amount = Number.parseFloat(String(formData.get("amount") || ""));
-  const title = String(formData.get("title") || "").trim();
-  const notes = String(formData.get("notes") || "").trim() || null;
-  const category_id = String(formData.get("category_id") || "");
-  const bucketRaw = String(formData.get("bucket_id") || "");
-  const bucket_id = bucketRaw && bucketRaw !== "none" ? bucketRaw : null;
-  const occurred_at = String(formData.get("occurred_at") || "");
+  const parsed = parseForm(entrySchema, {
+    transaction_type: formData.get("transaction_type") === "income" ? "income" : "expense",
+    amount: String(formData.get("amount") ?? ""),
+    title: String(formData.get("title") ?? ""),
+    notes: String(formData.get("notes") ?? "") || undefined,
+    category_id: String(formData.get("category_id") ?? ""),
+    bucket_id: bucketIdFromForm(formData),
+    occurred_at: String(formData.get("occurred_at") ?? ""),
+  });
+  if (!parsed.ok) return { fieldErrors: parsed.fieldErrors };
 
-  if (!title) return { error: "Title is required." };
-  if (!Number.isFinite(amount) || amount < 0) return { error: "Amount must be a non-negative number." };
-  if (!category_id) return { error: "Category is required." };
-  if (!occurred_at) return { error: "Date is required." };
+  const amount = Number.parseFloat(parsed.data.amount.replace(",", "."));
 
   const { error } = await supabase.from("entries").insert({
-    transaction_type,
+    transaction_type: parsed.data.transaction_type,
     amount,
-    title,
-    notes,
-    occurred_at: new Date(occurred_at).toISOString(),
+    title: parsed.data.title,
+    notes: parsed.data.notes ?? null,
+    occurred_at: new Date(parsed.data.occurred_at).toISOString(),
     created_by_user_id: user.id,
-    category_id,
-    bucket_id,
+    category_id: parsed.data.category_id,
+    bucket_id: parsed.data.bucket_id ?? null,
   });
 
   if (error) return { error: error.message };
 
   revalidatePath("/app");
   revalidatePath("/app/entries");
-  redirect("/app/entries");
+  const bid = parsed.data.bucket_id;
+  if (bid) revalidatePath(`/app/buckets/${bid}`);
+  redirect("/app/entries?saved=1");
+}
+
+export async function updateEntry(
+  _prev: EntryActionState,
+  formData: FormData,
+): Promise<EntryActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const entryId = String(formData.get("entry_id") ?? "");
+  if (!entryId) return { error: "Missing entry." };
+
+  const parsed = parseForm(entrySchema, {
+    transaction_type: formData.get("transaction_type") === "income" ? "income" : "expense",
+    amount: String(formData.get("amount") ?? ""),
+    title: String(formData.get("title") ?? ""),
+    notes: String(formData.get("notes") ?? "") || undefined,
+    category_id: String(formData.get("category_id") ?? ""),
+    bucket_id: bucketIdFromForm(formData),
+    occurred_at: String(formData.get("occurred_at") ?? ""),
+  });
+  if (!parsed.ok) return { fieldErrors: parsed.fieldErrors };
+
+  const amount = Number.parseFloat(parsed.data.amount.replace(",", "."));
+
+  const { error } = await supabase
+    .from("entries")
+    .update({
+      transaction_type: parsed.data.transaction_type,
+      amount,
+      title: parsed.data.title,
+      notes: parsed.data.notes ?? null,
+      occurred_at: new Date(parsed.data.occurred_at).toISOString(),
+      category_id: parsed.data.category_id,
+      bucket_id: parsed.data.bucket_id ?? null,
+    })
+    .eq("id", entryId)
+    .eq("created_by_user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/app");
+  revalidatePath("/app/entries");
+  revalidatePath(`/app/entries/${entryId}/edit`);
+  const bid = parsed.data.bucket_id;
+  if (bid) revalidatePath(`/app/buckets/${bid}`);
+  redirect("/app/entries?saved=1");
 }

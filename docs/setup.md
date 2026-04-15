@@ -10,18 +10,20 @@
 
 Copy `.env.example` to `.env.local` and fill in values from the Supabase dashboard (Settings → API):
 
-| Variable | Purpose |
-|----------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `anon` public key (RLS enforced) |
-| `NEXT_PUBLIC_APP_URL` | Canonical site URL (e.g. `http://localhost:3000`, production domain on Vercel) |
+| Variable                        | Purpose                                                                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Project URL                                                                                                                            |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `anon` public key (RLS enforced)                                                                                                       |
+| `NEXT_PUBLIC_APP_URL`           | Canonical site URL (e.g. `http://localhost:3000`, production domain on Vercel). Used for absolute auth redirect URLs (`getSiteUrl()`). |
 
 GripHook uses the **anon** key on the server with the user’s session cookies (no service role in the app). Sensitive writes that must bypass RLS use Postgres `SECURITY DEFINER` functions (e.g. `join_bucket_by_code`).
 
 ## 2. Database
 
 1. Open the Supabase SQL editor (or run migrations via CLI).
-2. Apply [`supabase/migrations/20260415120000_init.sql`](../supabase/migrations/20260415120000_init.sql).
+2. Apply migrations in order:
+   - [`supabase/migrations/20260415120000_init.sql`](../supabase/migrations/20260415120000_init.sql) — schema, RLS, initial `join_bucket_by_code`
+   - [`supabase/migrations/20260415140000_hardening.sql`](../supabase/migrations/20260415140000_hardening.sql) — RLS/tightening, stable join RPC error codes (`GH_*`), indexes
 
 Optional demo data:
 
@@ -31,10 +33,14 @@ Optional demo data:
 
 In Supabase → Authentication → URL configuration:
 
-- **Site URL:** `http://localhost:3000` during development; production URL on Vercel.
-- **Redirect URLs:** include `http://localhost:3000/**` and your production `https://your-domain.com/**`.
+- **Site URL:** `http://localhost:3000` during development; production URL on Vercel (must match `NEXT_PUBLIC_APP_URL` in production).
+- **Redirect URLs:** include:
+  - `http://localhost:3000/**` and your production `https://your-domain.com/**`
+  - **Email / PKCE callback:** `http://localhost:3000/auth/callback` and `https://your-domain.com/auth/callback`
 
-Email confirmation: for the fastest local loop, you can disable “Confirm email” in Auth settings while iterating.
+The app route [`/auth/callback`](../src/app/auth/callback/route.ts) exchanges the auth `code` (or verifies `token_hash` from the email link) and sets the session cookie.
+
+**Email confirmation:** if “Confirm email” is on, new users may have **no session** until they click the link — the signup screen explains that case. For the fastest local loop, you can disable email confirmation while iterating.
 
 ## 4. Run locally
 
@@ -53,8 +59,14 @@ Visit `http://localhost:3000`.
 
 ## PWA notes
 
-- `manifest.ts`, icons (`/icon`, `/apple-icon`), `appleWebApp` metadata, and safe-area padding are in place.
+- `manifest.ts` lists **192** and **512** logical sizes (both served from `/icon`, generated at 512×512), plus `/apple-icon`.
+- Safe-area padding and mobile scroll margins help forms clear the bottom nav.
 - **Service worker / offline caching are intentionally not enabled** yet; add something like `next-pwa` in a follow-up when requirements are clear.
+
+## Known MVP limits
+
+- No settlement engine or full “who owes whom” accounting — shared buckets use a simple fairness breakdown only.
+- Recurring templates are stored and listed; automatic entry generation is not implemented.
 
 ## Troubleshooting
 

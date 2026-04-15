@@ -12,7 +12,10 @@ export default async function SignupPage() {
 
   return (
     <div>
-      <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
+      <Link
+        href="/"
+        className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+      >
         ← Back
       </Link>
       <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">

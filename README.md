@@ -23,13 +23,13 @@ npm run dev
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Dev server (Turbopack) |
-| `npm run build` | Production build |
-| `npm run start` | Start production server |
-| `npm run lint` | ESLint |
-| `npm run format` | Prettier write |
+| Command          | Description             |
+| ---------------- | ----------------------- |
+| `npm run dev`    | Dev server (Turbopack)  |
+| `npm run build`  | Production build        |
+| `npm run start`  | Start production server |
+| `npm run lint`   | ESLint                  |
+| `npm run format` | Prettier write          |
 
 ## Project layout (high level)
 
@@ -43,7 +43,9 @@ npm run dev
 
 ## PWA status
 
-Installable metadata and icons are wired; **offline/service worker** support is deferred — see `docs/setup.md`.
+Installable metadata and icons are wired (`/icon` at 512px with manifest entries for 192 and 512). **Offline/service worker** support is deferred — see `docs/setup.md`.
+
+**Auth:** configure Supabase redirect URLs to include `/auth/callback` and set `NEXT_PUBLIC_APP_URL` on Vercel (see setup doc).
 
 ## License
 

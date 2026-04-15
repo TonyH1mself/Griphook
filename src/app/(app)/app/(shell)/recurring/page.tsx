@@ -4,7 +4,12 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { formatEur } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function RecurringPage() {
+export default async function RecurringPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string }>;
+}) {
+  const sp = await searchParams;
   const supabase = await createClient();
   const { data: templates } = await supabase
     .from("recurring_entry_templates")
@@ -12,21 +17,37 @@ export default async function RecurringPage() {
     .order("next_due_at", { ascending: true });
 
   const { data: categories } = await supabase.from("categories").select("id,name").order("name");
-  const { data: buckets } = await supabase.from("buckets").select("id,name,type").eq("is_archived", false).order("name");
+  const { data: buckets } = await supabase
+    .from("buckets")
+    .select("id,name,type")
+    .eq("is_archived", false)
+    .order("name");
 
   return (
     <div className="space-y-10">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Recurring</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+          Recurring
+        </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Templates only for now — automation can be layered in later without changing this structure.
+          Templates only for now — automation can be layered in later without changing this
+          structure.
         </p>
       </header>
+
+      {sp.saved === "1" ? (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-100">
+          Template saved.
+        </p>
+      ) : null}
 
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Templates</h2>
         {!templates?.length ? (
-          <EmptyState title="No recurring templates" description="Add rent, subscriptions, or salary reminders." />
+          <EmptyState
+            title="No recurring templates"
+            description="Add rent, subscriptions, or salary reminders."
+          />
         ) : (
           <ul className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200/80 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/40">
             {templates.map((t) => {
@@ -62,7 +83,9 @@ export default async function RecurringPage() {
 
       <Card>
         <CardTitle>New template</CardTitle>
-        <CardDescription>We store the schedule — generation can be manual or automated later.</CardDescription>
+        <CardDescription>
+          We store the schedule — generation can be manual or automated later.
+        </CardDescription>
         <div className="mt-6">
           <RecurringForm categories={categories ?? []} buckets={buckets ?? []} />
         </div>

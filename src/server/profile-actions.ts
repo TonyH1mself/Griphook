@@ -1,9 +1,15 @@
 "use server";
 
+import { parseForm } from "@/lib/validation/form";
+import { onboardingSchema } from "@/lib/validation/schemas";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export type ProfileActionState = { error?: string; ok?: boolean };
+export type ProfileActionState = {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  ok?: boolean;
+};
 
 export async function completeOnboarding(
   _prev: ProfileActionState,
@@ -15,19 +21,19 @@ export async function completeOnboarding(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not signed in." };
 
-  const username = String(formData.get("username") || "")
-    .trim()
-    .toLowerCase();
-  const displayName = String(formData.get("display_name") || "").trim();
+  const parsed = parseForm(onboardingSchema, {
+    username: String(formData.get("username") ?? ""),
+    display_name: String(formData.get("display_name") ?? ""),
+  });
+  if (!parsed.ok) return { fieldErrors: parsed.fieldErrors };
 
-  if (username.length < 2) return { error: "Username must be at least 2 characters." };
-  if (!displayName) return { error: "Display name is required." };
+  const { username, display_name } = parsed.data;
 
   const { error } = await supabase
     .from("profiles")
     .update({
       username,
-      display_name: displayName,
+      display_name,
       email: user.email ?? undefined,
     })
     .eq("id", user.id);

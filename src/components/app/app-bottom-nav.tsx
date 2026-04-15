@@ -29,7 +29,7 @@ export function AppBottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center rounded-xl px-1 py-2 text-[11px] font-medium",
+                  "flex min-h-11 min-w-[44px] flex-col items-center justify-center rounded-xl px-1 py-2 text-[11px] font-medium transition-transform active:scale-[0.97]",
                   active
                     ? "text-slate-900 dark:text-white"
                     : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200",

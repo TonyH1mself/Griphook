@@ -1,0 +1,60 @@
+import { createServerClient } from "@supabase/ssr";
+import type { EmailOtpType } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+
+/**
+ * Email confirmation / PKCE: exchanges `code` or verifies `token_hash` for a session.
+ * Add to Supabase Auth redirect URLs: {SITE_URL}/auth/callback
+ */
+export async function GET(request: NextRequest) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const { searchParams, origin } = new URL(request.url);
+  const nextRaw = searchParams.get("next") ?? "/app";
+  const next = nextRaw.startsWith("/") ? nextRaw : "/app";
+
+  if (!url || !key) {
+    return NextResponse.redirect(`${origin}/login?error=config`);
+  }
+
+  const cookieStore = await cookies();
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          /* ignore when not mutable */
+        }
+      },
+    },
+  });
+
+  const code = searchParams.get("code");
+  const token_hash = searchParams.get("token_hash");
+  const type = searchParams.get("type") as EmailOtpType | null;
+
+  if (token_hash && type) {
+    const { error } = await supabase.auth.verifyOtp({ type, token_hash });
+    if (error) {
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+    }
+    return NextResponse.redirect(`${origin}${next}`);
+  }
+
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+    }
+    return NextResponse.redirect(`${origin}${next}`);
+  }
+
+  return NextResponse.redirect(`${origin}/login?error=missing_code`);
+}

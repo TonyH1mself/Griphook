@@ -7,9 +7,16 @@ import { completeOnboarding, type ProfileActionState } from "@/server/profile-ac
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
 
+function fe(state: ProfileActionState, key: string) {
+  return state.fieldErrors?.[key];
+}
+
 export function OnboardingForm() {
   const router = useRouter();
-  const [state, action, pending] = useActionState<ProfileActionState, FormData>(completeOnboarding, {});
+  const [state, action, pending] = useActionState<ProfileActionState, FormData>(
+    completeOnboarding,
+    {},
+  );
 
   useEffect(() => {
     if (state.ok) {
@@ -22,15 +29,21 @@ export function OnboardingForm() {
     <form action={action} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="username">Username</Label>
-        <Input id="username" name="username" autoComplete="username" required minLength={2} />
-        <p className="text-xs text-slate-500">Lowercase, unique, at least 2 characters.</p>
+        <Input id="username" name="username" autoComplete="username" className="min-h-11" />
+        <p className="text-xs text-slate-500">Lowercase letters, numbers, underscores. Unique.</p>
+        {fe(state, "username") ? (
+          <p className="text-xs text-red-600 dark:text-red-400">{fe(state, "username")}</p>
+        ) : null}
       </div>
       <div className="space-y-2">
         <Label htmlFor="display_name">Display name</Label>
-        <Input id="display_name" name="display_name" autoComplete="name" required />
+        <Input id="display_name" name="display_name" autoComplete="name" className="min-h-11" />
+        {fe(state, "display_name") ? (
+          <p className="text-xs text-red-600 dark:text-red-400">{fe(state, "display_name")}</p>
+        ) : null}
       </div>
       {state.error ? <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p> : null}
-      <Button type="submit" className="h-11 w-full rounded-2xl" disabled={pending}>
+      <Button type="submit" className="min-h-11 w-full rounded-2xl" disabled={pending}>
         {pending ? "Saving…" : "Continue"}
       </Button>
     </form>

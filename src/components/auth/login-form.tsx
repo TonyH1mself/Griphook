@@ -8,10 +8,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-export function LoginForm() {
+export function LoginForm({ defaultRedirect }: { defaultRedirect?: string | null }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/app";
+  const redirectTo = defaultRedirect || searchParams.get("redirect") || "/app";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,6 +48,7 @@ export function LoginForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="min-h-11"
         />
       </div>
       <div className="space-y-2">
@@ -60,10 +61,11 @@ export function LoginForm() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="min-h-11"
         />
       </div>
       {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      <Button type="submit" className="h-11 w-full rounded-2xl" disabled={pending}>
+      <Button type="submit" className="min-h-11 w-full rounded-2xl" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
       </Button>
       <p className="text-center text-sm text-slate-500">

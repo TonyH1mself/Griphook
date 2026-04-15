@@ -1,5 +1,8 @@
+import { QuickAddEntry } from "@/components/entries/quick-add-entry";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { remainingBucketBudget, sharedBucketBreakdown, summarizeMonth } from "@/lib/domain";
+import { ProgressBar } from "@/components/ui/progress-bar";
+import { budgetHealthRows } from "@/lib/dashboard/budget-health";
+import { sharedBucketBreakdown, summarizeMonth } from "@/lib/domain";
 import { formatEur } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
@@ -34,113 +37,197 @@ export default async function DashboardPage() {
     .eq("is_archived", false)
     .order("name");
 
-  const budgetCards =
-    buckets
-      ?.filter((b) => b.has_budget && b.budget_period === "monthly" && b.budget_amount != null)
-      .map((b) => {
-        const spent =
-          entries
-            ?.filter(
-              (e) =>
-                e.bucket_id === b.id &&
-                e.transaction_type === "expense" &&
-                new Date(e.occurred_at) >= monthStart &&
-                new Date(e.occurred_at) <= monthEnd,
-            )
-            .reduce((s, e) => s + Number(e.amount), 0) ?? 0;
-        const remaining = remainingBucketBudget(b.budget_amount, b.budget_period, spent);
-        return { bucket: b, spent, remaining };
-      }) ?? [];
+  const [{ data: categories }, { data: quickBuckets }] = await Promise.all([
+    supabase.from("categories").select("id,name").order("name"),
+    supabase.from("buckets").select("id,name,type").eq("is_archived", false).order("name"),
+  ]);
+
+  const expensesByBucket = new Map<string, number>();
+  for (const e of entries ?? []) {
+    if (e.transaction_type !== "expense" || !e.bucket_id) continue;
+    expensesByBucket.set(e.bucket_id, (expensesByBucket.get(e.bucket_id) ?? 0) + Number(e.amount));
+  }
+
+  const health = budgetHealthRows(buckets ?? [], expensesByBucket);
 
   const sharedBuckets = buckets?.filter((b) => b.type === "shared") ?? [];
+  const sharedIds = sharedBuckets.map((b) => b.id);
 
-  const sharedPreviews = await Promise.all(
-    sharedBuckets.map(async (b) => {
-      const { data: members } = await supabase
-        .from("bucket_members")
-        .select("user_id,share_percent")
-        .eq("bucket_id", b.id);
+  const { data: sharedMembers } =
+    sharedIds.length > 0
+      ? await supabase
+          .from("bucket_members")
+          .select("bucket_id,user_id,share_percent")
+          .in("bucket_id", sharedIds)
+      : { data: [] as { bucket_id: string; user_id: string; share_percent: number }[] };
 
-      const bucketEntries =
-        entries?.filter((e) => e.bucket_id === b.id && e.transaction_type === "expense") ?? [];
-      const breakdown = sharedBucketBreakdown(members ?? [], bucketEntries);
-      const total = bucketEntries.reduce((s, e) => s + Number(e.amount), 0);
-      const maxDelta = breakdown.reduce((m, row) => Math.max(m, Math.abs(row.delta)), 0);
-      return { bucket: b, total, maxDelta, breakdown };
-    }),
-  );
+  const membersByBucket = new Map<string, { user_id: string; share_percent: number }[]>();
+  for (const m of sharedMembers ?? []) {
+    const list = membersByBucket.get(m.bucket_id) ?? [];
+    list.push({ user_id: m.user_id, share_percent: Number(m.share_percent) });
+    membersByBucket.set(m.bucket_id, list);
+  }
+
+  const sharedPreviews = sharedBuckets.map((b) => {
+    const members = membersByBucket.get(b.id) ?? [];
+    const bucketEntries =
+      entries?.filter((e) => e.bucket_id === b.id && e.transaction_type === "expense") ?? [];
+    const breakdown = sharedBucketBreakdown(members, bucketEntries);
+    const total = bucketEntries.reduce((s, e) => s + Number(e.amount), 0);
+    const maxDelta = breakdown.reduce((m, row) => Math.max(m, Math.abs(row.delta)), 0);
+    return { bucket: b, total, maxDelta };
+  });
+
+  const { data: reminders } = await supabase
+    .from("recurring_entry_templates")
+    .select("id,title,next_due_at,amount,transaction_type")
+    .eq("is_active", true)
+    .order("next_due_at", { ascending: true })
+    .limit(4);
 
   const recent = entries?.slice(0, 8) ?? [];
 
   return (
     <div className="space-y-10">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">This month at a glance.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+          Dashboard
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">Your month, prioritized.</p>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardTitle>Income</CardTitle>
-          <CardDescription>Recorded this month</CardDescription>
-          <p className="mt-4 text-2xl font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">
+      {categories?.length ? (
+        <QuickAddEntry categories={categories} buckets={quickBuckets ?? []} />
+      ) : null}
+
+      <section className="grid gap-3 sm:grid-cols-3">
+        <Card className="sm:col-span-1">
+          <CardTitle className="text-base">Income</CardTitle>
+          <CardDescription>This month</CardDescription>
+          <p className="mt-3 text-2xl font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">
             {formatEur(month.income)}
           </p>
         </Card>
-        <Card>
-          <CardTitle>Expenses</CardTitle>
-          <CardDescription>Recorded this month</CardDescription>
-          <p className="mt-4 text-2xl font-semibold tabular-nums text-rose-700 dark:text-rose-400">
+        <Card className="sm:col-span-1">
+          <CardTitle className="text-base">Expenses</CardTitle>
+          <CardDescription>This month</CardDescription>
+          <p className="mt-3 text-2xl font-semibold tabular-nums text-rose-700 dark:text-rose-400">
             {formatEur(month.expense)}
           </p>
         </Card>
-        <Card>
-          <CardTitle>Balance</CardTitle>
-          <CardDescription>Income minus expenses</CardDescription>
-          <p className="mt-4 text-2xl font-semibold tabular-nums text-slate-900 dark:text-white">
+        <Card className="border-slate-900/10 dark:border-white/10 sm:col-span-1">
+          <CardTitle className="text-base">Saldo</CardTitle>
+          <CardDescription>In − out</CardDescription>
+          <p className="mt-3 text-2xl font-semibold tabular-nums text-slate-900 dark:text-white">
             {formatEur(month.balance)}
           </p>
         </Card>
       </section>
 
-      {budgetCards.length ? (
+      {health.length > 0 ? (
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Bucket budgets</h2>
-            <Link href="/app/buckets" className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
-              View all
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Budget pressure
+            </h2>
+            <Link
+              href="/app/buckets"
+              className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+            >
+              Buckets
             </Link>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {budgetCards.map(({ bucket, spent, remaining }) => (
-              <Card key={bucket.id}>
-                <CardTitle>{bucket.name}</CardTitle>
-                <CardDescription>
-                  Spent {formatEur(spent)}
-                  {remaining != null ? ` · ${formatEur(remaining)} left` : null}
-                </CardDescription>
+          <div className="grid gap-3">
+            {health.slice(0, 5).map((h) => (
+              <Card key={h.bucketId} className="py-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <Link
+                      href={`/app/buckets/${h.bucketId}`}
+                      className="text-sm font-semibold text-slate-900 dark:text-white"
+                    >
+                      {h.name}
+                    </Link>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {h.status === "over" ? (
+                        <span className="text-rose-700 dark:text-rose-400">Over cap</span>
+                      ) : h.status === "tight" ? (
+                        <span className="text-amber-800 dark:text-amber-200">Running tight</span>
+                      ) : (
+                        "On track"
+                      )}{" "}
+                      · {formatEur(h.spent)} / {formatEur(h.cap)}
+                      {h.remaining != null ? ` · ${formatEur(h.remaining)} left` : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <ProgressBar
+                    value={h.ratio > 1 ? 1 : h.ratio}
+                    indicatorClassName={
+                      h.status === "over"
+                        ? "bg-rose-600 dark:bg-rose-500"
+                        : h.status === "tight"
+                          ? "bg-amber-500"
+                          : undefined
+                    }
+                  />
+                </div>
               </Card>
             ))}
           </div>
         </section>
       ) : null}
 
-      {sharedPreviews.length ? (
+      {reminders && reminders.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+            Upcoming recurring
+          </h2>
+          <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200/80 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/40">
+            {reminders.map((r) => (
+              <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{r.title}</p>
+                  <p className="text-xs text-slate-500">
+                    {new Date(r.next_due_at).toLocaleString()}
+                  </p>
+                </div>
+                <p className="text-sm font-medium tabular-nums text-slate-700 dark:text-slate-200">
+                  {formatEur(Number(r.amount))}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <Link href="/app/recurring" className="text-xs font-medium text-slate-500 underline">
+            Manage recurring
+          </Link>
+        </section>
+      ) : null}
+
+      {sharedPreviews.length > 0 ? (
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Shared buckets</h2>
-            <Link href="/app/shared" className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
-              Open shared
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Shared fairness
+            </h2>
+            <Link
+              href="/app/shared"
+              className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+            >
+              Shared
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {sharedPreviews.map(({ bucket, total, maxDelta }) => (
-              <Card key={bucket.id}>
-                <CardTitle>{bucket.name}</CardTitle>
-                <CardDescription>
-                  {formatEur(total)} shared expenses · largest |Δ| {formatEur(maxDelta)}
-                </CardDescription>
-              </Card>
+              <Link key={bucket.id} href={`/app/shared/${bucket.id}`}>
+                <Card className="h-full transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/80">
+                  <CardTitle>{bucket.name}</CardTitle>
+                  <CardDescription>
+                    {formatEur(total)} expenses · max |Δ| {formatEur(maxDelta)}
+                  </CardDescription>
+                </Card>
+              </Link>
             ))}
           </div>
         </section>
@@ -149,14 +236,17 @@ export default async function DashboardPage() {
       <section className="space-y-3">
         <div className="flex items-end justify-between gap-4">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Latest entries</h2>
-          <Link href="/app/entries/new" className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
-            Add entry
+          <Link
+            href="/app/entries/new"
+            className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+          >
+            Add
           </Link>
         </div>
         {recent.length === 0 ? (
           <Card>
-            <CardTitle>No entries yet</CardTitle>
-            <CardDescription>Capture your first income or expense to populate this month.</CardDescription>
+            <CardTitle>No entries this month</CardTitle>
+            <CardDescription>Start with a quick expense or income.</CardDescription>
             <Link
               href="/app/entries/new"
               className="mt-4 inline-flex text-sm font-medium text-slate-900 underline dark:text-white"

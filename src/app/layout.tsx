@@ -16,7 +16,8 @@ export const metadata: Metadata = {
     default: "GripHook",
     template: "%s · GripHook",
   },
-  description: "Personal finance tracking with bucket-first organization and optional shared buckets.",
+  description:
+    "Personal finance tracking with bucket-first organization and optional shared buckets.",
   applicationName: "GripHook",
   appleWebApp: {
     capable: true,
