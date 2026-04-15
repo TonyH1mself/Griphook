@@ -1,0 +1,72 @@
+import { EmptyState } from "@/components/app/empty-state";
+import { RecurringForm } from "@/components/recurring/recurring-form";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { formatEur } from "@/lib/format";
+import { createClient } from "@/lib/supabase/server";
+
+export default async function RecurringPage() {
+  const supabase = await createClient();
+  const { data: templates } = await supabase
+    .from("recurring_entry_templates")
+    .select("id,title,amount,transaction_type,frequency,next_due_at,is_active,categories(name)")
+    .order("next_due_at", { ascending: true });
+
+  const { data: categories } = await supabase.from("categories").select("id,name").order("name");
+  const { data: buckets } = await supabase.from("buckets").select("id,name,type").eq("is_archived", false).order("name");
+
+  return (
+    <div className="space-y-10">
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Recurring</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Templates only for now — automation can be layered in later without changing this structure.
+        </p>
+      </header>
+
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Templates</h2>
+        {!templates?.length ? (
+          <EmptyState title="No recurring templates" description="Add rent, subscriptions, or salary reminders." />
+        ) : (
+          <ul className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200/80 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/40">
+            {templates.map((t) => {
+              const cat =
+                t.categories && typeof t.categories === "object" && "name" in t.categories
+                  ? String((t.categories as { name: string }).name)
+                  : "—";
+              return (
+                <li key={t.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">{t.title}</p>
+                    <p className="text-xs text-slate-500">
+                      {cat} · {t.frequency} · next {new Date(t.next_due_at).toLocaleString()}
+                      {!t.is_active ? " · paused" : ""}
+                    </p>
+                  </div>
+                  <p
+                    className={
+                      t.transaction_type === "income"
+                        ? "text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-400"
+                        : "text-sm font-semibold tabular-nums text-rose-700 dark:text-rose-400"
+                    }
+                  >
+                    {t.transaction_type === "income" ? "+" : "−"}
+                    {formatEur(Number(t.amount))}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      <Card>
+        <CardTitle>New template</CardTitle>
+        <CardDescription>We store the schedule — generation can be manual or automated later.</CardDescription>
+        <div className="mt-6">
+          <RecurringForm categories={categories ?? []} buckets={buckets ?? []} />
+        </div>
+      </Card>
+    </div>
+  );
+}
