@@ -5,11 +5,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { createRecurringTemplate, type RecurringActionState } from "@/server/recurring-actions";
+import {
+  createRecurringTemplate,
+  updateRecurringTemplate,
+  type RecurringActionState,
+} from "@/server/recurring-actions";
 import { useActionState } from "react";
 
 type Category = { id: string; name: string };
 type Bucket = { id: string; name: string; type: string };
+
+export type RecurringInitial = {
+  id: string;
+  transaction_type: "income" | "expense";
+  amount: string;
+  title: string;
+  notes: string | null;
+  category_id: string;
+  bucket_id: string | null;
+  frequency: "monthly" | "weekly";
+  next_due_at: string;
+};
 
 function fieldErr(state: RecurringActionState, key: string) {
   return state.fieldErrors?.[key];
@@ -18,29 +34,42 @@ function fieldErr(state: RecurringActionState, key: string) {
 export function RecurringForm({
   categories,
   buckets,
+  mode = "create",
+  initial,
 }: {
   categories: Category[];
   buckets: Bucket[];
+  mode?: "create" | "edit";
+  initial?: RecurringInitial;
 }) {
-  const [state, action, pending] = useActionState<RecurringActionState, FormData>(
-    createRecurringTemplate,
-    {},
-  );
+  const serverAction =
+    mode === "edit" ? updateRecurringTemplate : createRecurringTemplate;
+  const [state, action, pending] = useActionState<RecurringActionState, FormData>(serverAction, {});
 
   const defaultNext = new Date();
   defaultNext.setDate(defaultNext.getDate() + 7);
   defaultNext.setMinutes(defaultNext.getMinutes() - defaultNext.getTimezoneOffset());
   const defaultNextValue = defaultNext.toISOString().slice(0, 16);
 
+  const nextDueValue =
+    initial?.next_due_at != null
+      ? new Date(initial.next_due_at).toISOString().slice(0, 16)
+      : defaultNextValue;
+
+  const defaultBucket = initial?.bucket_id ?? "none";
+
   return (
     <form action={action} className="space-y-5 scroll-mt-24">
+      {mode === "edit" && initial ? (
+        <input type="hidden" name="template_id" value={initial.id} />
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="transaction_type">Type</Label>
           <select
             id="transaction_type"
             name="transaction_type"
-            defaultValue="expense"
+            defaultValue={initial?.transaction_type ?? "expense"}
             className={cn(
               "min-h-11 w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 dark:bg-slate-950 dark:text-slate-50",
               fieldErr(state, "transaction_type")
@@ -59,6 +88,7 @@ export function RecurringForm({
             name="amount"
             inputMode="decimal"
             required
+            defaultValue={initial?.amount}
             className="min-h-11 text-lg tabular-nums"
             aria-invalid={!!fieldErr(state, "amount")}
           />
@@ -71,7 +101,7 @@ export function RecurringForm({
           <select
             id="frequency"
             name="frequency"
-            defaultValue="monthly"
+            defaultValue={initial?.frequency ?? "monthly"}
             className={cn(
               "min-h-11 w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 dark:bg-slate-950 dark:text-slate-50",
               fieldErr(state, "frequency")
@@ -89,6 +119,7 @@ export function RecurringForm({
             id="title"
             name="title"
             required
+            defaultValue={initial?.title}
             className="min-h-11"
             aria-invalid={!!fieldErr(state, "title")}
           />
@@ -108,6 +139,7 @@ export function RecurringForm({
                 ? "border-red-300 focus:border-red-400 focus:ring-red-100 dark:border-red-800"
                 : "border-slate-200 focus:border-slate-400 focus:ring-slate-200 dark:border-slate-700",
             )}
+            defaultValue={initial?.category_id}
             aria-invalid={!!fieldErr(state, "category_id")}
           >
             <option value="" disabled>
@@ -130,7 +162,7 @@ export function RecurringForm({
           <select
             id="bucket_id"
             name="bucket_id"
-            defaultValue="none"
+            defaultValue={defaultBucket === null ? "none" : defaultBucket}
             className={cn(
               "min-h-11 w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 dark:bg-slate-950 dark:text-slate-50",
               fieldErr(state, "bucket_id")
@@ -156,7 +188,7 @@ export function RecurringForm({
             name="next_due_at"
             type="datetime-local"
             required
-            defaultValue={defaultNextValue}
+            defaultValue={nextDueValue}
             className="min-h-11"
             aria-invalid={!!fieldErr(state, "next_due_at")}
           />
@@ -171,6 +203,7 @@ export function RecurringForm({
           <Textarea
             id="notes"
             name="notes"
+            defaultValue={initial?.notes ?? ""}
             className="min-h-[4.5rem]"
             aria-invalid={!!fieldErr(state, "notes")}
           />
@@ -181,7 +214,7 @@ export function RecurringForm({
       </div>
       {state.error ? <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p> : null}
       <Button type="submit" className="min-h-12 w-full rounded-2xl sm:w-auto" disabled={pending}>
-        {pending ? "Saving…" : "Save template"}
+        {pending ? "Saving…" : mode === "edit" ? "Save changes" : "Save template"}
       </Button>
     </form>
   );

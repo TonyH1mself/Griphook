@@ -33,6 +33,8 @@ export function EntryForm({
   initial,
   defaultBucketId,
   variant = "default",
+  /** After create, redirect here instead of the entries list (internal path only). */
+  returnTo,
 }: {
   categories: Category[];
   buckets: Bucket[];
@@ -41,6 +43,7 @@ export function EntryForm({
   defaultBucketId?: string | null;
   /** Hides notes for compact dashboard quick-add. */
   variant?: "default" | "compact";
+  returnTo?: string | null;
 }) {
   const action = mode === "edit" ? updateEntry : createEntry;
   const [state, formAction, pending] = useActionState<EntryActionState, FormData>(action, {});
@@ -66,6 +69,9 @@ export function EntryForm({
         <input type="hidden" name="entry_id" value={initial.id} />
       ) : null}
       <input type="hidden" name="transaction_type" value={txType} />
+      {mode === "create" && returnTo ? (
+        <input type="hidden" name="return_to" value={returnTo} />
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">

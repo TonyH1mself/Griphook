@@ -24,6 +24,7 @@ export function QuickAddEntry({
           buckets={buckets}
           defaultBucketId={defaultBucketId}
           variant="compact"
+          returnTo="/app"
         />
       </div>
     </section>

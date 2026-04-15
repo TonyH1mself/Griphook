@@ -2,7 +2,12 @@ import { EntryForm } from "@/components/entries/entry-form";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
-export default async function NewEntryPage() {
+export default async function NewEntryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
+  const sp = await searchParams;
   const supabase = await createClient();
   const { data: categories } = await supabase.from("categories").select("id,name").order("name");
   const { data: buckets } = await supabase
@@ -25,7 +30,7 @@ export default async function NewEntryPage() {
         </h1>
         <p className="mt-1 text-sm text-slate-500">Optimized for quick mobile capture.</p>
       </div>
-      <EntryForm categories={categories ?? []} buckets={buckets ?? []} />
+      <EntryForm categories={categories ?? []} buckets={buckets ?? []} returnTo={sp.returnTo} />
     </div>
   );
 }

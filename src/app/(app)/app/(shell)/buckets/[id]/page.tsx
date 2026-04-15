@@ -1,7 +1,8 @@
 import { ArchiveBucketButton } from "@/components/buckets/archive-bucket-button";
+import { UnarchiveBucketButton } from "@/components/buckets/unarchive-bucket-button";
 import { BucketBudgetForm } from "@/components/buckets/bucket-budget-form";
 import { BucketMetaForm } from "@/components/buckets/bucket-meta-form";
-import { MembersManageStub } from "@/components/buckets/members-manage-stub";
+import { MemberSharesForm } from "@/components/buckets/member-shares-form";
 import { RegenerateJoinButton } from "@/components/buckets/regenerate-join-button";
 import { EntryForm } from "@/components/entries/entry-form";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -151,10 +152,14 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
       </div>
 
       {bucket.is_archived ? (
-        <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
-          This bucket is archived. New entries and edits are disabled in the UI until we add
-          restore.
-        </p>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
+          <p>This bucket is archived. Logging new entries here is turned off until you restore it.</p>
+          {canManage ? (
+            <div className="mt-4">
+              <UnarchiveBucketButton bucketId={bucket.id} bucketName={bucket.name} />
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       {bucket.description ? (
@@ -256,6 +261,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
               categories={categories ?? []}
               buckets={allBuckets ?? []}
               defaultBucketId={id}
+              returnTo={`/app/buckets/${id}`}
             />
           </div>
         </Card>
@@ -382,9 +388,30 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
                 );
               })}
             </ul>
+            {canManage ? (
+              <div className="mt-6 border-t border-slate-200 pt-6 dark:border-slate-800">
+                <p className="text-sm font-medium text-slate-900 dark:text-white">Adjust shares</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  After someone joins with a code, rebalance so the total stays at 100%.
+                </p>
+                <div className="mt-4">
+                  <MemberSharesForm
+                    bucketId={bucket.id}
+                    members={(members ?? []).map((m) => {
+                      const p = profileById.get(m.user_id);
+                      const label =
+                        p?.display_name || p?.username || m.user_id.slice(0, 8);
+                      return {
+                        user_id: m.user_id,
+                        share_percent: Number(m.share_percent),
+                        label,
+                      };
+                    })}
+                  />
+                </div>
+              </div>
+            ) : null}
           </Card>
-
-          {canManage ? <MembersManageStub /> : null}
         </>
       ) : null}
 

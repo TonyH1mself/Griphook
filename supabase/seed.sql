@@ -1,7 +1,8 @@
 -- GripHook demo seed (run after migrations, e.g. `supabase db reset` picks this up if configured)
 -- Requires at least one auth user for user-scoped rows; use two sign-ups for the shared-bucket demo.
+-- System categories are also applied by migration `20260415180000_seed_system_categories.sql` (required for the app).
 
--- System categories (idempotent)
+-- System categories (idempotent; redundant if that migration ran)
 INSERT INTO public.categories (id, name, slug, created_by_user_id, is_system)
 VALUES
   ('11111111-1111-1111-1111-111111111101', 'Groceries', 'system-groceries', NULL, true),

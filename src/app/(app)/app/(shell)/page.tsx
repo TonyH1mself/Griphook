@@ -7,6 +7,18 @@ import { formatEur } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
+function recurringDueLabel(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startDue = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const days = Math.round((startDue.getTime() - startToday.getTime()) / 86400000);
+  if (days < 0) return `${d.toLocaleDateString()} · overdue`;
+  if (days === 0) return "Due today";
+  if (days === 1) return "Due tomorrow";
+  return `Due in ${days} days`;
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const now = new Date();
@@ -49,6 +61,14 @@ export default async function DashboardPage() {
   }
 
   const health = budgetHealthRows(buckets ?? [], expensesByBucket);
+  const healthIds = new Set(health.map((h) => h.bucketId));
+
+  const spendOnlyBuckets =
+    buckets?.filter((b) => {
+      const spent = expensesByBucket.get(b.id) ?? 0;
+      const inHealth = healthIds.has(b.id);
+      return !inHealth && spent > 0;
+    }) ?? [];
 
   const sharedBuckets = buckets?.filter((b) => b.type === "shared") ?? [];
   const sharedIds = sharedBuckets.map((b) => b.id);
@@ -75,7 +95,8 @@ export default async function DashboardPage() {
     const breakdown = sharedBucketBreakdown(members, bucketEntries);
     const total = bucketEntries.reduce((s, e) => s + Number(e.amount), 0);
     const maxDelta = breakdown.reduce((m, row) => Math.max(m, Math.abs(row.delta)), 0);
-    return { bucket: b, total, maxDelta };
+    const memberCount = members.length;
+    return { bucket: b, total, maxDelta, memberCount };
   });
 
   const { data: reminders } = await supabase
@@ -179,6 +200,47 @@ export default async function DashboardPage() {
         </section>
       ) : null}
 
+      {spendOnlyBuckets.length > 0 ? (
+        <section className="space-y-3">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Other bucket spending
+            </h2>
+            <Link
+              href="/app/buckets"
+              className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+            >
+              Buckets
+            </Link>
+          </div>
+          <p className="text-xs text-slate-500">
+            No monthly cap — still tracking expenses this month.
+          </p>
+          <div className="grid gap-3">
+            {spendOnlyBuckets.map((b) => {
+              const spent = expensesByBucket.get(b.id) ?? 0;
+              return (
+                <Card key={b.id} className="py-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <Link
+                        href={`/app/buckets/${b.id}`}
+                        className="text-sm font-semibold text-slate-900 dark:text-white"
+                      >
+                        {b.name}
+                      </Link>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {b.type === "shared" ? "Shared" : "Private"} · {formatEur(spent)} expenses
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
       {reminders && reminders.length > 0 ? (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -190,7 +252,7 @@ export default async function DashboardPage() {
                 <div>
                   <p className="text-sm font-medium text-slate-900 dark:text-white">{r.title}</p>
                   <p className="text-xs text-slate-500">
-                    {new Date(r.next_due_at).toLocaleString()}
+                    {recurringDueLabel(r.next_due_at)} · {new Date(r.next_due_at).toLocaleString()}
                   </p>
                 </div>
                 <p className="text-sm font-medium tabular-nums text-slate-700 dark:text-slate-200">
@@ -219,12 +281,13 @@ export default async function DashboardPage() {
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            {sharedPreviews.map(({ bucket, total, maxDelta }) => (
+            {sharedPreviews.map(({ bucket, total, maxDelta, memberCount }) => (
               <Link key={bucket.id} href={`/app/shared/${bucket.id}`}>
                 <Card className="h-full transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/80">
                   <CardTitle>{bucket.name}</CardTitle>
                   <CardDescription>
-                    {formatEur(total)} expenses · max |Δ| {formatEur(maxDelta)}
+                    {memberCount} {memberCount === 1 ? "member" : "members"} · {formatEur(total)}{" "}
+                    expenses · max |Δ| {formatEur(maxDelta)}
                   </CardDescription>
                 </Card>
               </Link>

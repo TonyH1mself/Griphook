@@ -1,11 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { archiveBucket } from "@/server/bucket-actions";
+import { unarchiveBucket } from "@/server/bucket-actions";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-export function ArchiveBucketButton({
+export function UnarchiveBucketButton({
   bucketId,
   bucketName,
 }: {
@@ -20,31 +20,24 @@ export function ArchiveBucketButton({
     <div className="space-y-2">
       <Button
         type="button"
-        variant="ghost"
-        className="min-h-11 w-full rounded-2xl text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 sm:w-auto"
+        className="min-h-11 w-full rounded-2xl sm:w-auto"
         disabled={pending}
         onClick={() => {
           setError(null);
-          if (
-            !window.confirm(
-              `Archive “${bucketName}”? You can restore it anytime from Buckets → Archived.`,
-            )
-          )
-            return;
+          if (!window.confirm(`Restore “${bucketName}” to your active buckets?`)) return;
           startTransition(async () => {
-            const r = await archiveBucket(bucketId);
+            const r = await unarchiveBucket(bucketId);
             if (r.error) {
               setError(r.error);
               return;
             }
-            router.push("/app/buckets");
             router.refresh();
           });
         }}
       >
-        {pending ? "Archiving…" : "Archive bucket"}
+        {pending ? "Restoring…" : "Restore bucket"}
       </Button>
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+      {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
     </div>
   );
 }

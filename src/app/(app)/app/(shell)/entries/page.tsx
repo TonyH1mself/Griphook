@@ -1,5 +1,7 @@
 import { EmptyState } from "@/components/app/empty-state";
 import { LinkButton } from "@/components/ui/link-button";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { formatEur } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
@@ -7,7 +9,7 @@ import Link from "next/link";
 export default async function EntriesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; q?: string; type?: string; bucket?: string }>;
 }) {
   const sp = await searchParams;
   const supabase = await createClient();
@@ -15,13 +17,35 @@ export default async function EntriesPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: entries } = await supabase
+  const q = (sp.q ?? "").trim();
+  const typeFilter = sp.type === "income" || sp.type === "expense" ? sp.type : null;
+  const bucketFilter = (sp.bucket ?? "").trim() || null;
+
+  let entryQuery = supabase
     .from("entries")
     .select(
-      "id,title,amount,transaction_type,occurred_at,created_by_user_id,categories(name),buckets(name)",
+      "id,title,amount,transaction_type,occurred_at,created_by_user_id,categories(name),buckets(name,type)",
     )
     .order("occurred_at", { ascending: false })
-    .limit(100);
+    .limit(200);
+
+  if (q) {
+    entryQuery = entryQuery.ilike("title", `%${q.replace(/%/g, "\\%")}%`);
+  }
+  if (typeFilter) {
+    entryQuery = entryQuery.eq("transaction_type", typeFilter);
+  }
+  if (bucketFilter) {
+    entryQuery = entryQuery.eq("bucket_id", bucketFilter);
+  }
+
+  const { data: entries } = await entryQuery;
+
+  const { data: bucketOptions } = await supabase
+    .from("buckets")
+    .select("id,name,type")
+    .eq("is_archived", false)
+    .order("name");
 
   return (
     <div className="space-y-8">
@@ -41,11 +65,98 @@ export default async function EntriesPage({
         </p>
       ) : null}
 
+      <form method="get" className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/40">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="min-w-0 flex-1 space-y-1">
+            <label htmlFor="q" className="text-xs font-medium text-slate-500">
+              Search title
+            </label>
+            <input
+              id="q"
+              name="q"
+              defaultValue={q}
+              placeholder="e.g. groceries"
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950"
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="bucket" className="text-xs font-medium text-slate-500">
+              Bucket
+            </label>
+            <select
+              id="bucket"
+              name="bucket"
+              defaultValue={bucketFilter ?? ""}
+              className="min-h-11 w-full min-w-[12rem] rounded-xl border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950 sm:w-auto"
+            >
+              <option value="">All buckets</option>
+              {(bucketOptions ?? []).map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {typeFilter ? <input type="hidden" name="type" value={typeFilter} /> : null}
+          <Button type="submit" className="min-h-11 w-full rounded-2xl sm:w-auto">
+            Apply
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <span className="w-full text-xs font-medium uppercase tracking-wide text-slate-400 sm:w-auto sm:py-2">
+            Type
+          </span>
+          {(
+            [
+              { key: null, label: "All" },
+              { key: "expense" as const, label: "Expenses" },
+              { key: "income" as const, label: "Income" },
+            ] as const
+          ).map(({ key, label }) => {
+            const active = typeFilter === key || (key === null && !typeFilter);
+            const href = (() => {
+              const p = new URLSearchParams();
+              if (q) p.set("q", q);
+              if (key) p.set("type", key);
+              if (bucketFilter) p.set("bucket", bucketFilter);
+              const qs = p.toString();
+              return qs ? `/app/entries?${qs}` : "/app/entries";
+            })();
+            return (
+              <Link
+                key={label}
+                href={href}
+                className={cn(
+                  "inline-flex min-h-9 items-center rounded-full px-3 text-sm font-medium",
+                  active
+                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                    : "border border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300",
+                )}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      </form>
+
       {!entries?.length ? (
         <EmptyState
-          title="No entries yet"
-          description="Add your first income or expense. You can attach a bucket later."
-          action={<LinkButton href="/app/entries/new">Create entry</LinkButton>}
+          title="No entries match"
+          description={
+            q || typeFilter || bucketFilter
+              ? "Try clearing filters or search."
+              : "Add your first income or expense. You can attach a bucket later."
+          }
+          action={
+            !q && !typeFilter && !bucketFilter ? (
+              <LinkButton href="/app/entries/new">Create entry</LinkButton>
+            ) : (
+              <LinkButton href="/app/entries" variant="secondary">
+                Clear filters
+              </LinkButton>
+            )
+          }
         />
       ) : (
         <ul className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200/80 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/40">
@@ -58,17 +169,38 @@ export default async function EntriesPage({
               e.buckets && typeof e.buckets === "object" && "name" in e.buckets
                 ? String((e.buckets as { name: string }).name)
                 : null;
+            const bucketType =
+              e.buckets && typeof e.buckets === "object" && "type" in e.buckets
+                ? String((e.buckets as { type: string }).type)
+                : null;
             const canEdit = user?.id === e.created_by_user_id;
             return (
               <li key={e.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{e.title}</p>
-                  <p className="text-xs text-slate-500">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
+                    {e.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">
                     {cat}
-                    {bucket ? ` · ${bucket}` : ""} · {new Date(e.occurred_at).toLocaleString()}
+                    {bucket ? (
+                      <>
+                        {" · "}
+                        <span
+                          className={
+                            bucketType === "shared"
+                              ? "text-violet-700 dark:text-violet-300"
+                              : undefined
+                          }
+                        >
+                          {bucket}
+                          {bucketType === "shared" ? " (shared)" : ""}
+                        </span>
+                      </>
+                    ) : null}{" "}
+                    · {new Date(e.occurred_at).toLocaleString()}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex shrink-0 items-center gap-3">
                   <p
                     className={
                       e.transaction_type === "income"

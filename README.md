@@ -39,7 +39,8 @@ npm run dev
 - `src/lib/supabase` — browser/server/middleware Supabase clients (`@supabase/ssr`)
 - `src/server` — server actions (mutations)
 - `supabase/migrations` — SQL schema + RLS + `join_bucket_by_code` RPC
-- `supabase/seed.sql` — optional demo categories/buckets/entries
+- `supabase/migrations/20260415180000_seed_system_categories.sql` — **required** default categories (also embedded in optional seed for demos)
+- `supabase/seed.sql` — optional demo buckets/entries/recurring (categories are redundant if migrations ran)
 
 ## PWA status
 

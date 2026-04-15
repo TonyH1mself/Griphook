@@ -1,8 +1,10 @@
 import { EmptyState } from "@/components/app/empty-state";
 import { RecurringForm } from "@/components/recurring/recurring-form";
+import { RecurringToggleButton } from "@/components/recurring/recurring-toggle-button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { formatEur } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function RecurringPage({
   searchParams,
@@ -13,7 +15,9 @@ export default async function RecurringPage({
   const supabase = await createClient();
   const { data: templates } = await supabase
     .from("recurring_entry_templates")
-    .select("id,title,amount,transaction_type,frequency,next_due_at,is_active,categories(name)")
+    .select(
+      "id,title,amount,transaction_type,frequency,next_due_at,is_active,categories(name),buckets(name)",
+    )
     .order("next_due_at", { ascending: true });
 
   const { data: categories } = await supabase.from("categories").select("id,name").order("name");
@@ -55,25 +59,43 @@ export default async function RecurringPage({
                 t.categories && typeof t.categories === "object" && "name" in t.categories
                   ? String((t.categories as { name: string }).name)
                   : "—";
+              const bkt =
+                t.buckets && typeof t.buckets === "object" && "name" in t.buckets
+                  ? String((t.buckets as { name: string }).name)
+                  : null;
               return (
-                <li key={t.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                  <div>
+                <li
+                  key={t.id}
+                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+                >
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-slate-900 dark:text-white">{t.title}</p>
                     <p className="text-xs text-slate-500">
-                      {cat} · {t.frequency} · next {new Date(t.next_due_at).toLocaleString()}
+                      {cat}
+                      {bkt ? ` · ${bkt}` : ""} · {t.frequency} · next{" "}
+                      {new Date(t.next_due_at).toLocaleString()}
                       {!t.is_active ? " · paused" : ""}
                     </p>
+                    <Link
+                      href={`/app/recurring/${t.id}/edit`}
+                      className="mt-1 inline-block text-xs font-medium text-slate-500 underline"
+                    >
+                      Edit
+                    </Link>
                   </div>
-                  <p
-                    className={
-                      t.transaction_type === "income"
-                        ? "text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-400"
-                        : "text-sm font-semibold tabular-nums text-rose-700 dark:text-rose-400"
-                    }
-                  >
-                    {t.transaction_type === "income" ? "+" : "−"}
-                    {formatEur(Number(t.amount))}
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <p
+                      className={
+                        t.transaction_type === "income"
+                          ? "text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-400"
+                          : "text-sm font-semibold tabular-nums text-rose-700 dark:text-rose-400"
+                      }
+                    >
+                      {t.transaction_type === "income" ? "+" : "−"}
+                      {formatEur(Number(t.amount))}
+                    </p>
+                    <RecurringToggleButton templateId={t.id} isActive={t.is_active} />
+                  </div>
                 </li>
               );
             })}

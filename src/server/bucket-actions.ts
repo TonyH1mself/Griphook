@@ -9,6 +9,13 @@ import { redirect } from "next/navigation";
 
 export type BucketActionState = { error?: string; fieldErrors?: Record<string, string> };
 
+function friendlyBucketError(error: { message?: string; code?: string }): string {
+  if (error.code === "42501" || /permission denied|rls/i.test(error.message ?? "")) {
+    return "You do not have permission to change this bucket.";
+  }
+  return error.message ?? "Something went wrong.";
+}
+
 async function allocateJoinCode(
   supabase: Awaited<ReturnType<typeof createClient>>,
   excludeBucketId?: string,
@@ -73,7 +80,7 @@ export async function createBucket(
     .select("id")
     .single();
 
-  if (error || !bucket) return { error: error?.message ?? "Could not create bucket." };
+  if (error || !bucket) return { error: error ? friendlyBucketError(error) : "Could not create bucket." };
 
   if (type === "shared") {
     const { error: memberError } = await supabase.from("bucket_members").insert({
@@ -82,7 +89,7 @@ export async function createBucket(
       role: "admin",
       share_percent: 100,
     });
-    if (memberError) return { error: memberError.message };
+    if (memberError) return { error: friendlyBucketError(memberError) };
   }
 
   revalidatePath("/app/buckets");
@@ -114,7 +121,7 @@ export async function updateBucketMeta(
     })
     .eq("id", bucketId);
 
-  if (error) return { error: error.message };
+  if (error) return { error: friendlyBucketError(error) };
 
   revalidatePath(`/app/buckets/${bucketId}`);
   revalidatePath("/app/buckets");
@@ -154,7 +161,7 @@ export async function updateBucketBudget(
     })
     .eq("id", bucketId);
 
-  if (error) return { error: error.message };
+  if (error) return { error: friendlyBucketError(error) };
 
   revalidatePath(`/app/buckets/${bucketId}`);
   revalidatePath("/app/buckets");
@@ -170,11 +177,28 @@ export async function archiveBucket(bucketId: string): Promise<{ error?: string;
   if (!user) return { error: "Not signed in." };
 
   const { error } = await supabase.from("buckets").update({ is_archived: true }).eq("id", bucketId);
-  if (error) return { error: error.message };
+  if (error) return { error: friendlyBucketError(error) };
 
   revalidatePath("/app/buckets");
   revalidatePath("/app");
   revalidatePath(`/app/buckets/${bucketId}`);
+  return { ok: true };
+}
+
+export async function unarchiveBucket(bucketId: string): Promise<{ error?: string; ok?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const { error } = await supabase.from("buckets").update({ is_archived: false }).eq("id", bucketId);
+  if (error) return { error: friendlyBucketError(error) };
+
+  revalidatePath("/app/buckets");
+  revalidatePath("/app");
+  revalidatePath(`/app/buckets/${bucketId}`);
+  revalidatePath("/app/shared");
   return { ok: true };
 }
 
@@ -206,7 +230,7 @@ export async function regenerateJoinCode(bucketId: string) {
     .from("buckets")
     .update({ join_code: nextCode })
     .eq("id", bucketId);
-  if (error) return { error: error.message };
+  if (error) return { error: friendlyBucketError(error) };
 
   revalidatePath(`/app/buckets/${bucketId}`);
   revalidatePath("/app/shared");
