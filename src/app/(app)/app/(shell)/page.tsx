@@ -1,10 +1,11 @@
 import { QuickAddEntry } from "@/components/entries/quick-add-entry";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { requireUser } from "@/lib/auth/guards";
 import { budgetHealthRows } from "@/lib/dashboard/budget-health";
 import { sharedBucketBreakdown, summarizeMonth } from "@/lib/domain";
 import { formatEur } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
+import { categoriesPickerOrFilter } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 
 function recurringDueLabel(iso: string) {
@@ -20,19 +21,34 @@ function recurringDueLabel(iso: string) {
 }
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
+  const { supabase, user } = await requireUser();
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-  const { data: entries } = await supabase
-    .from("entries")
-    .select(
-      "id,transaction_type,amount,title,occurred_at,bucket_id,created_by_user_id,categories(name)",
-    )
-    .gte("occurred_at", monthStart.toISOString())
-    .lte("occurred_at", monthEnd.toISOString())
-    .order("occurred_at", { ascending: false });
+  const [{ data: entries }, { data: buckets }, { data: categories }, { data: reminders }] =
+    await Promise.all([
+      supabase
+        .from("entries")
+        .select(
+          "id,transaction_type,amount,title,occurred_at,bucket_id,created_by_user_id,categories(name)",
+        )
+        .gte("occurred_at", monthStart.toISOString())
+        .lte("occurred_at", monthEnd.toISOString())
+        .order("occurred_at", { ascending: false }),
+      supabase.from("buckets").select("*").eq("is_archived", false).order("name"),
+      supabase
+        .from("categories")
+        .select("id,name")
+        .or(categoriesPickerOrFilter(user.id))
+        .order("name"),
+      supabase
+        .from("recurring_entry_templates")
+        .select("id,title,next_due_at,amount,transaction_type")
+        .eq("is_active", true)
+        .order("next_due_at", { ascending: true })
+        .limit(4),
+    ]);
 
   const entryRows =
     entries?.map((e) => ({
@@ -43,16 +59,7 @@ export default async function DashboardPage() {
 
   const month = summarizeMonth(entryRows, now);
 
-  const { data: buckets } = await supabase
-    .from("buckets")
-    .select("*")
-    .eq("is_archived", false)
-    .order("name");
-
-  const [{ data: categories }, { data: quickBuckets }] = await Promise.all([
-    supabase.from("categories").select("id,name").order("name"),
-    supabase.from("buckets").select("id,name,type").eq("is_archived", false).order("name"),
-  ]);
+  const quickBuckets = buckets?.map((b) => ({ id: b.id, name: b.name, type: b.type })) ?? [];
 
   const expensesByBucket = new Map<string, number>();
   for (const e of entries ?? []) {
@@ -98,13 +105,6 @@ export default async function DashboardPage() {
     const memberCount = members.length;
     return { bucket: b, total, maxDelta, memberCount };
   });
-
-  const { data: reminders } = await supabase
-    .from("recurring_entry_templates")
-    .select("id,title,next_due_at,amount,transaction_type")
-    .eq("is_active", true)
-    .order("next_due_at", { ascending: true })
-    .limit(4);
 
   const recent = entries?.slice(0, 8) ?? [];
 

@@ -2,8 +2,9 @@ import { EmptyState } from "@/components/app/empty-state";
 import { RecurringForm } from "@/components/recurring/recurring-form";
 import { RecurringToggleButton } from "@/components/recurring/recurring-toggle-button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { requireUser } from "@/lib/auth/guards";
 import { formatEur } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
+import { categoriesPickerOrFilter } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 
 export default async function RecurringPage({
@@ -12,20 +13,22 @@ export default async function RecurringPage({
   searchParams: Promise<{ saved?: string }>;
 }) {
   const sp = await searchParams;
-  const supabase = await createClient();
-  const { data: templates } = await supabase
-    .from("recurring_entry_templates")
-    .select(
-      "id,title,amount,transaction_type,frequency,next_due_at,is_active,categories(name),buckets(name)",
-    )
-    .order("next_due_at", { ascending: true });
+  const { supabase, user } = await requireUser();
 
-  const { data: categories } = await supabase.from("categories").select("id,name").order("name");
-  const { data: buckets } = await supabase
-    .from("buckets")
-    .select("id,name,type")
-    .eq("is_archived", false)
-    .order("name");
+  const [{ data: templates }, { data: categories }, { data: buckets }] = await Promise.all([
+    supabase
+      .from("recurring_entry_templates")
+      .select(
+        "id,title,amount,transaction_type,frequency,next_due_at,is_active,categories(name),buckets(name)",
+      )
+      .order("next_due_at", { ascending: true }),
+    supabase
+      .from("categories")
+      .select("id,name")
+      .or(categoriesPickerOrFilter(user.id))
+      .order("name"),
+    supabase.from("buckets").select("id,name,type").eq("is_archived", false).order("name"),
+  ]);
 
   return (
     <div className="space-y-10">

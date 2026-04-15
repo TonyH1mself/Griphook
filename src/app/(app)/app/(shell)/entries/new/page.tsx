@@ -1,5 +1,6 @@
 import { EntryForm } from "@/components/entries/entry-form";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth/guards";
+import { categoriesPickerOrFilter } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 
 export default async function NewEntryPage({
@@ -8,13 +9,15 @@ export default async function NewEntryPage({
   searchParams: Promise<{ returnTo?: string }>;
 }) {
   const sp = await searchParams;
-  const supabase = await createClient();
-  const { data: categories } = await supabase.from("categories").select("id,name").order("name");
-  const { data: buckets } = await supabase
-    .from("buckets")
-    .select("id,name,type")
-    .eq("is_archived", false)
-    .order("name");
+  const { supabase, user } = await requireUser();
+  const [{ data: categories }, { data: buckets }] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("id,name")
+      .or(categoriesPickerOrFilter(user.id))
+      .order("name"),
+    supabase.from("buckets").select("id,name,type").eq("is_archived", false).order("name"),
+  ]);
 
   return (
     <div className="space-y-8">

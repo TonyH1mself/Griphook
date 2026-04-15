@@ -69,6 +69,5 @@ export async function updateBucketMemberShares(
   revalidatePath(`/app/buckets/${bucketId}`);
   revalidatePath("/app/shared");
   revalidatePath(`/app/shared/${bucketId}`);
-  revalidatePath("/app");
   return { ok: true };
 }

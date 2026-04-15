@@ -11,6 +11,7 @@ const links = [
   { href: "/app/shared", label: "Shared" },
   { href: "/app/shared/join", label: "Join bucket" },
   { href: "/app/recurring", label: "Recurring" },
+  { href: "/app/categories", label: "Categories" },
   { href: "/app/settings", label: "Settings" },
 ] as const;
 

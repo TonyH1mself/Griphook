@@ -1,14 +1,12 @@
 import { RecurringForm, type RecurringInitial } from "@/components/recurring/recurring-form";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth/guards";
+import { fetchCategoriesForPicker } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 export default async function EditRecurringPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await requireUser();
 
   const { data: row } = await supabase
     .from("recurring_entry_templates")
@@ -16,9 +14,9 @@ export default async function EditRecurringPage({ params }: { params: Promise<{ 
     .eq("id", id)
     .maybeSingle();
 
-  if (!row || row.created_by_user_id !== user?.id) notFound();
+  if (!row || row.created_by_user_id !== user.id) notFound();
 
-  const { data: categories } = await supabase.from("categories").select("id,name").order("name");
+  const categories = await fetchCategoriesForPicker(supabase, user.id, row.category_id);
   const { data: buckets } = await supabase
     .from("buckets")
     .select("id,name,type")
@@ -53,7 +51,7 @@ export default async function EditRecurringPage({ params }: { params: Promise<{ 
         </h1>
       </div>
       <RecurringForm
-        categories={categories ?? []}
+        categories={categories}
         buckets={buckets ?? []}
         mode="edit"
         initial={initial}

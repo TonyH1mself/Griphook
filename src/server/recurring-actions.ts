@@ -142,6 +142,5 @@ export async function setRecurringTemplateActive(
   if (!updated) return { error: "Template not found." };
 
   revalidatePath("/app/recurring");
-  revalidatePath("/app");
   return { ok: true };
 }

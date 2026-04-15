@@ -8,17 +8,15 @@ import { EntryForm } from "@/components/entries/entry-form";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { remainingBucketBudget, sharedBucketBreakdown } from "@/lib/domain";
+import { requireUser } from "@/lib/auth/guards";
 import { formatEur } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
+import { fetchCategoriesForPicker } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 export default async function BucketDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await requireUser();
 
   const { data: bucket } = await supabase.from("buckets").select("*").eq("id", id).maybeSingle();
   if (!bucket) notFound();
@@ -31,10 +29,10 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
     .from("bucket_members")
     .select("role")
     .eq("bucket_id", id)
-    .eq("user_id", user?.id ?? "")
+    .eq("user_id", user.id)
     .maybeSingle();
 
-  const isPrivateOwner = bucket.type === "private" && bucket.created_by_user_id === user?.id;
+  const isPrivateOwner = bucket.type === "private" && bucket.created_by_user_id === user.id;
   const isSharedAdmin = bucket.type === "shared" && membership?.role === "admin";
   const canManage = !bucket.is_archived && (isPrivateOwner || isSharedAdmin);
 
@@ -115,7 +113,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
         )
       : [];
 
-  const { data: categories } = await supabase.from("categories").select("id,name").order("name");
+  const categories = await fetchCategoriesForPicker(supabase, user.id, null);
   const { data: allBuckets } = await supabase
     .from("buckets")
     .select("id,name,type")
@@ -258,7 +256,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
           <CardDescription>Defaults to this bucket — fastest path on mobile.</CardDescription>
           <div className="mt-6">
             <EntryForm
-              categories={categories ?? []}
+              categories={categories}
               buckets={allBuckets ?? []}
               defaultBucketId={id}
               returnTo={`/app/buckets/${id}`}
@@ -293,7 +291,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
                     {e.transaction_type === "income" ? "+" : "−"}
                     {formatEur(Number(e.amount))}
                   </p>
-                  {e.created_by_user_id === user?.id ? (
+                  {e.created_by_user_id === user.id ? (
                     <Link
                       href={`/app/entries/${e.id}/edit`}
                       className="text-xs font-medium text-slate-500 underline"

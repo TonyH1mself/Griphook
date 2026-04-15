@@ -1,21 +1,19 @@
 import { DeleteEntryButton } from "@/components/entries/delete-entry-button";
 import { EntryForm, type EntryInitial } from "@/components/entries/entry-form";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth/guards";
+import { fetchCategoriesForPicker } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 export default async function EditEntryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await requireUser();
 
   const { data: entry } = await supabase.from("entries").select("*").eq("id", id).maybeSingle();
 
-  if (!entry || entry.created_by_user_id !== user?.id) notFound();
+  if (!entry || entry.created_by_user_id !== user.id) notFound();
 
-  const { data: categories } = await supabase.from("categories").select("id,name").order("name");
+  const categories = await fetchCategoriesForPicker(supabase, user.id, entry.category_id);
   const { data: buckets } = await supabase
     .from("buckets")
     .select("id,name,type")
@@ -47,7 +45,7 @@ export default async function EditEntryPage({ params }: { params: Promise<{ id: 
         </h1>
       </div>
       <EntryForm
-        categories={categories ?? []}
+        categories={categories}
         buckets={buckets ?? []}
         mode="edit"
         initial={initial}

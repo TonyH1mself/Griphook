@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/server/auth-actions";
+import Link from "next/link";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -51,8 +52,19 @@ export default async function SettingsPage() {
       </Card>
 
       <Card>
+        <CardTitle>Categories</CardTitle>
+        <CardDescription>Create and archive your own labels for entries and recurring items.</CardDescription>
+        <Link
+          href="/app/categories"
+          className="mt-4 inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 text-sm font-medium text-white dark:bg-white dark:text-slate-900"
+        >
+          Manage categories
+        </Link>
+      </Card>
+
+      <Card>
         <CardTitle>Coming soon</CardTitle>
-        <CardDescription>Currency defaults, categories management, notifications.</CardDescription>
+        <CardDescription>Currency defaults, notifications, and more preferences.</CardDescription>
       </Card>
     </div>
   );
