@@ -1,3 +1,4 @@
+import { missingProfilesTableMessage } from "@/lib/supabase/db-errors";
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
@@ -24,11 +25,20 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("username")
     .eq("id", user.id)
     .maybeSingle();
+
+  if (profileError) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = onboardingPath;
+    if (!missingProfilesTableMessage(profileError)) {
+      redirectUrl.searchParams.set("warn", "profile_fetch");
+    }
+    return NextResponse.redirect(redirectUrl);
+  }
 
   if (!profile?.username) {
     const redirectUrl = request.nextUrl.clone();

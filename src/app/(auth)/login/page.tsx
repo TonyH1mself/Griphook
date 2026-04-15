@@ -1,4 +1,6 @@
 import { LoginForm } from "@/components/auth/login-form";
+import { loginPageErrorMessage } from "@/lib/auth/user-messages";
+import { getSafeInternalPath } from "@/lib/url";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -12,10 +14,10 @@ export default async function LoginPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) redirect("/app");
-
   const sp = await searchParams;
-  const authError = sp.error ? decodeURIComponent(sp.error) : null;
+  if (user) redirect(getSafeInternalPath(sp.redirect, "/app"));
+
+  const authError = loginPageErrorMessage(sp.error);
 
   return (
     <div>
@@ -35,7 +37,7 @@ export default async function LoginPage({
         </p>
       ) : null}
       <div className="mt-8">
-        <LoginForm defaultRedirect={sp.redirect} />
+               <LoginForm defaultRedirect={sp.redirect} />
       </div>
     </div>
   );

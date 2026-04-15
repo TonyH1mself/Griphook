@@ -21,9 +21,14 @@ GripHook uses the **anon** key on the server with the user’s session cookies (
 ## 2. Database
 
 1. Open the Supabase SQL editor (or run migrations via CLI).
-2. Apply migrations in order:
+2. **Paste only the contents of the `.sql` migration files** from this repo (full script text). Do **not** paste your project URL (`https://….supabase.co`), API keys, or `.env` lines into the SQL editor — those are not valid SQL and will error (e.g. `syntax error at or near "https"`).
+3. Apply full migrations in order:
    - [`supabase/migrations/20260415120000_init.sql`](../supabase/migrations/20260415120000_init.sql) — schema, RLS, initial `join_bucket_by_code`
    - [`supabase/migrations/20260415140000_hardening.sql`](../supabase/migrations/20260415140000_hardening.sql) — RLS/tightening, stable join RPC error codes (`GH_*`), indexes
+   - [`supabase/migrations/20260415160000_profiles_insert_and_trigger.sql`](../supabase/migrations/20260415160000_profiles_insert_and_trigger.sql) — idempotent `handle_new_user`, `profiles_insert_own` (for onboarding upsert), one-time profile backfill from `auth.users`
+4. **If `public.profiles` is still missing** (e.g. `init.sql` stopped before the `profiles` block or the run errored partway), execute [`docs/supabase-bootstrap-profiles.sql`](supabase-bootstrap-profiles.sql) once, then verify with [`docs/supabase-verify.sql`](supabase-verify.sql). That script only fixes `profiles`; you still need a successful full `init.sql` for categories, buckets, entries, and RPCs, or other parts of the app will break.
+
+**Profiles backfill (recovery):** If some `auth.users` rows have no `public.profiles` row (e.g. trigger was missing), run the idempotent insert from [`20260415160000_profiles_insert_and_trigger.sql`](../supabase/migrations/20260415160000_profiles_insert_and_trigger.sql) (the `INSERT … SELECT … FROM auth.users … ON CONFLICT DO NOTHING` block) in the SQL editor, or apply that migration if you have not yet. Duplicates are prevented by the primary key on `profiles.id`.
 
 Optional demo data:
 
@@ -55,7 +60,8 @@ Visit `http://localhost:3000`.
 
 1. Create a Vercel project from this repo.
 2. Set the same environment variables as in `.env.example` (production `NEXT_PUBLIC_APP_URL`).
-3. Redeploy after changing env vars.
+3. **Run the SQL migrations in the Supabase project that matches your Vercel env** (`NEXT_PUBLIC_SUPABASE_URL` / anon key). The app only hosts the UI; tables like `public.profiles` exist only after you execute `supabase/migrations/*.sql` in the Supabase SQL editor (or via CLI against that project). If migrations are missing, onboarding can fail with errors mentioning `profiles` or “schema cache”.
+4. Redeploy after changing env vars.
 
 ## PWA notes
 
@@ -71,4 +77,7 @@ Visit `http://localhost:3000`.
 ## Troubleshooting
 
 - **Build errors about missing Supabase env:** add `.env.local` or set variables in the hosting dashboard. Pages that talk to Supabase are marked `dynamic = "force-dynamic"` so they are not statically prerendered with secrets.
+- **`profiles` / “schema cache” on onboarding (Vercel):** PostgREST does not see `public.profiles` for the Supabase project behind your **production** `NEXT_PUBLIC_SUPABASE_URL`. Common causes: migrations were run in a **different** Supabase project than the one in Vercel env vars, or `init.sql` **did not complete** (check SQL Editor **History** for errors). Verify: open **Settings → API** and confirm the **Project URL** matches Vercel exactly; then run the checks in [`docs/supabase-verify.sql`](supabase-verify.sql). If `profiles` is missing, run `20260415120000_init.sql` then `20260415140000_hardening.sql` again in that same project (see §2).
+
+**Auth / profiles maintenance:** Apply [`20260415160000_profiles_insert_and_trigger.sql`](../supabase/migrations/20260415160000_profiles_insert_and_trigger.sql) in every Supabase project that already ran the older two migrations — it adds `profiles_insert_own` (required for onboarding **upsert**), makes `handle_new_user` idempotent, and backfills missing profile rows. Without it, users without a profile row may still hit onboarding errors until the SQL is applied.
 - **Join code errors:** ensure the SQL migration ran and `join_bucket_by_code` exists; check RLS isn’t blocking the RPC (function is `SECURITY DEFINER`).

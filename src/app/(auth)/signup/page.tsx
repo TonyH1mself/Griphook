@@ -1,14 +1,20 @@
 import { SignupForm } from "@/components/auth/signup-form";
+import { getSafeInternalPath } from "@/lib/url";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-export default async function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string }>;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) redirect("/app");
+  const sp = await searchParams;
+  if (user) redirect(getSafeInternalPath(sp.redirect, "/app"));
 
   return (
     <div>

@@ -23,3 +23,10 @@ export function getAuthCallbackUrl(nextPath = "/app"): string {
   const next = nextPath.startsWith("/") ? nextPath : `/${nextPath}`;
   return `${base}/auth/callback?next=${encodeURIComponent(next)}`;
 }
+
+/** Relative path only; blocks open redirects (e.g. `//evil.com`). */
+export function getSafeInternalPath(nextParam: string | null | undefined, fallback = "/app"): string {
+  const raw = (nextParam ?? "").trim();
+  if (!raw.startsWith("/") || raw.startsWith("//")) return fallback;
+  return raw;
+}

@@ -3,7 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatAuthErrorForUser } from "@/lib/auth/user-messages";
 import { createClient } from "@/lib/supabase/client";
+import { getSafeInternalPath } from "@/lib/url";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -11,7 +13,7 @@ import { useState } from "react";
 export function LoginForm({ defaultRedirect }: { defaultRedirect?: string | null }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = defaultRedirect || searchParams.get("redirect") || "/app";
+  const redirectTo = getSafeInternalPath(defaultRedirect || searchParams.get("redirect"), "/app");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +28,7 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string | null
       const supabase = createClient();
       const { error: signError } = await supabase.auth.signInWithPassword({ email, password });
       if (signError) {
-        setError(signError.message);
+        setError(formatAuthErrorForUser(signError));
         return;
       }
       router.push(redirectTo);

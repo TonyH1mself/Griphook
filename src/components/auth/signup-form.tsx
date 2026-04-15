@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatAuthErrorForUser } from "@/lib/auth/user-messages";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl, getSiteUrl } from "@/lib/url";
 import Link from "next/link";
@@ -31,7 +32,7 @@ export function SignupForm() {
         options: { emailRedirectTo: redirectTo },
       });
       if (signError) {
-        setError(signError.message);
+        setError(formatAuthErrorForUser(signError));
         return;
       }
       if (data.session) {
