@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 const items = [
   { href: "/app", label: "Home", match: (p: string) => p === "/app" },
@@ -24,6 +25,25 @@ const itemInteraction =
 
 export function AppBottomNav() {
   const pathname = usePathname();
+
+  useEffect(() => {
+    // #region agent log
+    const w = typeof window !== "undefined" ? window.innerWidth : 0;
+    fetch("http://127.0.0.1:7794/ingest/09b0aba0-4f5a-4ca4-8763-6c4f0cd89420", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "60d861" },
+      body: JSON.stringify({
+        sessionId: "60d861",
+        location: "app-bottom-nav.tsx:mount",
+        message: "bottom_nav_mount",
+        data: { innerWidth: w, belowMd: w < 768 },
+        timestamp: Date.now(),
+        hypothesisId: "H2",
+        runId: "verify-fab",
+      }),
+    }).catch(() => {});
+    // #endregion
+  }, []);
 
   return (
     <nav

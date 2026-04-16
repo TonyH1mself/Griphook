@@ -1,4 +1,5 @@
 import { AppBottomNav } from "@/components/app/app-bottom-nav";
+import { AppMobileFabMenu } from "@/components/app/app-mobile-fab-menu";
 import { AppSideNav } from "@/components/app/app-side-nav";
 
 export default function AppShellLayout({ children }: { children: React.ReactNode }) {
@@ -9,6 +10,7 @@ export default function AppShellLayout({ children }: { children: React.ReactNode
         <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 md:px-8 md:py-10">{children}</div>
       </div>
       <AppBottomNav />
+      <AppMobileFabMenu />
     </div>
   );
 }
