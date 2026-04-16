@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateBucketBudget, type BucketActionState } from "@/server/bucket-actions";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 
 function fe(s: BucketActionState, k: string) {
   return s.fieldErrors?.[k];
@@ -18,14 +18,24 @@ export function BucketBudgetForm({
   hasBudget,
   budgetAmount,
   budgetPeriod,
+  onSuccess,
 }: {
   bucketId: string;
   hasBudget: boolean;
   budgetAmount: string | number | null;
   budgetPeriod: string;
+  onSuccess?: () => void;
 }) {
   const bound = updateBucketBudget.bind(null, bucketId);
   const [state, action, pending] = useActionState<BucketActionState, FormData>(bound, {});
+  const seen = useRef(false);
+  useEffect(() => {
+    if (state.ok && !seen.current) {
+      seen.current = true;
+      onSuccess?.();
+    }
+    if (!state.ok) seen.current = false;
+  }, [state.ok, onSuccess]);
 
   const amt = budgetAmount != null && budgetAmount !== "" ? String(budgetAmount) : "";
 

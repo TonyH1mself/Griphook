@@ -1,16 +1,11 @@
-import { ArchiveBucketButton } from "@/components/buckets/archive-bucket-button";
+import { BucketActionsMenu } from "@/components/buckets/bucket-actions-menu";
 import { UnarchiveBucketButton } from "@/components/buckets/unarchive-bucket-button";
-import { BucketBudgetForm } from "@/components/buckets/bucket-budget-form";
-import { BucketMetaForm } from "@/components/buckets/bucket-meta-form";
 import { MemberSharesForm } from "@/components/buckets/member-shares-form";
-import { RegenerateJoinButton } from "@/components/buckets/regenerate-join-button";
-import { EntryForm } from "@/components/entries/entry-form";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { remainingBucketBudget, sharedBucketBreakdown } from "@/lib/domain";
 import { requireUser } from "@/lib/auth/guards";
 import { formatEur } from "@/lib/format";
-import { loadCategoriesForPicker } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -113,13 +108,6 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
         )
       : [];
 
-  const picker = await loadCategoriesForPicker(supabase, user.id);
-  const { data: allBuckets } = await supabase
-    .from("buckets")
-    .select("id,name,type")
-    .eq("is_archived", false)
-    .order("name");
-
   return (
     <div className="space-y-8">
       <div>
@@ -130,7 +118,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
           ← Buckets
         </Link>
         <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight text-gh-text">{bucket.name}</h1>
             <p className="mt-1 text-sm text-gh-text-muted">
               {bucket.type === "shared" ? "Gemeinsamer Bucket" : "Privater Bucket"}
@@ -140,12 +128,20 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
               {bucket.is_archived ? " · Archiviert" : ""}
             </p>
           </div>
-          <Link
-            href="/app/entries/new"
-            className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-gh-border bg-gh-surface-elevated px-4 text-sm font-medium text-gh-text shadow-sm transition-[background-color,border-color] duration-150 hover:border-gh-text-muted/30 hover:bg-gh-surface motion-reduce:transition-none"
-          >
-            Anderswo erfassen
-          </Link>
+          {canManage ? (
+            <BucketActionsMenu
+              bucket={{
+                id: bucket.id,
+                name: bucket.name,
+                description: bucket.description,
+                type: bucket.type,
+                has_budget: bucket.has_budget,
+                budget_amount: bucket.budget_amount,
+                budget_period: bucket.budget_period,
+              }}
+              canRegenerateJoinCode={isSharedAdmin}
+            />
+          ) : null}
         </div>
       </div>
 
@@ -155,7 +151,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
             Dieser Bucket ist archiviert. Neue Einträge sind deaktiviert, bis du ihn
             wiederherstellst.
           </p>
-          {canManage ? (
+          {isPrivateOwner || isSharedAdmin ? (
             <div className="mt-4">
               <UnarchiveBucketButton bucketId={bucket.id} bucketName={bucket.name} />
             </div>
@@ -251,24 +247,6 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
         </Card>
       ) : null}
 
-      {!bucket.is_archived ? (
-        <Card>
-          <CardTitle>Schnell erfassen</CardTitle>
-          <CardDescription>
-            Standardmäßig in diesem Bucket — schnellster Weg auf dem Handy.
-          </CardDescription>
-          <div className="mt-6">
-            <EntryForm
-              categories={picker.rows}
-              buckets={allBuckets ?? []}
-              defaultBucketId={id}
-              returnTo={`/app/buckets/${id}`}
-              categoriesLoadError={picker.loadError}
-            />
-          </div>
-        </Card>
-      ) : null}
-
       <Card>
         <CardTitle>Letzte Einträge</CardTitle>
         <CardDescription>Diesen Monat in diesem Bucket.</CardDescription>
@@ -318,15 +296,6 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
             <p className="mt-4 text-3xl font-semibold tracking-[0.25em] tabular-nums text-gh-text">
               {bucket.join_code}
             </p>
-            {canManage ? (
-              <div className="mt-6">
-                <RegenerateJoinButton bucketId={bucket.id} />
-              </div>
-            ) : (
-              <p className="mt-4 text-xs text-gh-text-muted">
-                Nur Admins können den Beitrittscode neu erzeugen.
-              </p>
-            )}
           </Card>
 
           <Card>
@@ -419,45 +388,6 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
             ) : null}
           </Card>
         </>
-      ) : null}
-
-      {canManage ? (
-        <Card>
-          <CardTitle>Einstellungen</CardTitle>
-          <CardDescription>Name und Beschreibung.</CardDescription>
-          <div className="mt-6 max-w-lg">
-            <BucketMetaForm
-              bucketId={bucket.id}
-              name={bucket.name}
-              description={bucket.description}
-            />
-          </div>
-        </Card>
-      ) : null}
-
-      {canManage ? (
-        <Card>
-          <CardTitle>Budget-Einstellungen</CardTitle>
-          <CardDescription>Monatsbudget an/aus und Betrag.</CardDescription>
-          <div className="mt-6 max-w-lg">
-            <BucketBudgetForm
-              bucketId={bucket.id}
-              hasBudget={bucket.has_budget}
-              budgetAmount={bucket.budget_amount}
-              budgetPeriod={bucket.budget_period}
-            />
-          </div>
-        </Card>
-      ) : null}
-
-      {canManage ? (
-        <Card>
-          <CardTitle>Gefahrenzone</CardTitle>
-          <CardDescription>Archivieren blendet den Bucket aus den Hauptlisten aus.</CardDescription>
-          <div className="mt-4">
-            <ArchiveBucketButton bucketId={bucket.id} bucketName={bucket.name} />
-          </div>
-        </Card>
       ) : null}
     </div>
   );

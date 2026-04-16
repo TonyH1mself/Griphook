@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { updateBucketMeta, type BucketActionState } from "@/server/bucket-actions";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 
 function fe(s: BucketActionState, k: string) {
   return s.fieldErrors?.[k];
@@ -15,13 +15,23 @@ export function BucketMetaForm({
   bucketId,
   name,
   description,
+  onSuccess,
 }: {
   bucketId: string;
   name: string;
   description: string | null;
+  onSuccess?: () => void;
 }) {
   const bound = updateBucketMeta.bind(null, bucketId);
   const [state, action, pending] = useActionState<BucketActionState, FormData>(bound, {});
+  const seen = useRef(false);
+  useEffect(() => {
+    if (state.ok && !seen.current) {
+      seen.current = true;
+      onSuccess?.();
+    }
+    if (!state.ok) seen.current = false;
+  }, [state.ok, onSuccess]);
 
   return (
     <form action={action} className="space-y-3">

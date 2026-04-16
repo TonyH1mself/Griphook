@@ -94,11 +94,8 @@ export default async function BucketsPage({
             Private oder gemeinsame Töpfe — mit oder ohne Monatsbudget.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <LinkButton href="/app/buckets/new" variant="secondary">
-            Privater Bucket
-          </LinkButton>
-          <LinkButton href="/app/buckets/new?type=shared">Gemeinsamer Bucket</LinkButton>
+        <div>
+          <LinkButton href="/app/buckets/new">Neuer Bucket</LinkButton>
         </div>
       </header>
 
@@ -145,12 +142,7 @@ export default async function BucketsPage({
           }
           action={
             status !== "archived" ? (
-              <div className="flex flex-wrap justify-center gap-2">
-                <LinkButton href="/app/buckets/new" variant="secondary">
-                  Privat
-                </LinkButton>
-                <LinkButton href="/app/buckets/new?type=shared">Gemeinsam</LinkButton>
-              </div>
+              <LinkButton href="/app/buckets/new">Neuer Bucket</LinkButton>
             ) : null
           }
         />

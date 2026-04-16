@@ -15,10 +15,10 @@ function fe(state: BucketActionState, key: string) {
 const selectClass =
   "min-h-11 w-full rounded-xl border border-gh-border bg-gh-surface-inset px-3 py-2.5 text-sm text-gh-text shadow-[inset_0_1px_2px_rgb(0_0_0/0.2)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-gh-accent/50 focus:ring-2 focus:ring-gh-ring/35 motion-reduce:transition-none";
 
-export function BucketForm({ defaultType = "private" }: { defaultType?: "private" | "shared" }) {
+export function BucketForm() {
   const [state, action, pending] = useActionState<BucketActionState, FormData>(createBucket, {});
 
-  const [type, setType] = useState<"private" | "shared">(defaultType);
+  const [type, setType] = useState<"private" | "shared">("private");
   const [hasBudget, setHasBudget] = useState(false);
   const typeGroupId = useId();
 

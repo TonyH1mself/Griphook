@@ -7,7 +7,11 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export type BucketActionState = { error?: string; fieldErrors?: Record<string, string> };
+export type BucketActionState = {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  ok?: boolean;
+};
 
 function friendlyBucketError(error: { message?: string; code?: string }): string {
   if (error.code === "42501" || /permission denied|rls/i.test(error.message ?? "")) {
@@ -140,7 +144,7 @@ export async function updateBucketMeta(
   revalidatePath(`/app/buckets/${bucketId}`);
   revalidatePath("/app/buckets");
   revalidatePath("/app");
-  return {};
+  return { ok: true };
 }
 
 export async function updateBucketBudget(
@@ -180,7 +184,7 @@ export async function updateBucketBudget(
   revalidatePath(`/app/buckets/${bucketId}`);
   revalidatePath("/app/buckets");
   revalidatePath("/app");
-  return {};
+  return { ok: true };
 }
 
 export async function archiveBucket(bucketId: string): Promise<{ error?: string; ok?: boolean }> {
