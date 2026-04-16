@@ -133,23 +133,28 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-gh-text">{bucket.name}</h1>
             <p className="mt-1 text-sm text-gh-text-muted">
-              {bucket.type === "shared" ? "Shared bucket" : "Private bucket"}
-              {bucket.has_budget ? ` · Budget · ${bucket.budget_period}` : ""}
-              {bucket.is_archived ? " · Archived" : ""}
+              {bucket.type === "shared" ? "Gemeinsamer Bucket" : "Privater Bucket"}
+              {bucket.has_budget
+                ? ` · Budget · ${bucket.budget_period === "monthly" ? "monatlich" : bucket.budget_period}`
+                : ""}
+              {bucket.is_archived ? " · Archiviert" : ""}
             </p>
           </div>
           <Link
             href="/app/entries/new"
             className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-gh-border bg-gh-surface-elevated px-4 text-sm font-medium text-gh-text shadow-sm transition-[background-color,border-color] duration-150 hover:border-gh-text-muted/30 hover:bg-gh-surface motion-reduce:transition-none"
           >
-            Log entry elsewhere
+            Anderswo erfassen
           </Link>
         </div>
       </div>
 
       {bucket.is_archived ? (
         <div className="rounded-2xl border border-gh-warning/30 bg-gh-warning-soft px-4 py-3 text-sm text-gh-warning">
-          <p>This bucket is archived. Logging new entries here is turned off until you restore it.</p>
+          <p>
+            Dieser Bucket ist archiviert. Neue Einträge sind deaktiviert, bis du ihn
+            wiederherstellst.
+          </p>
           {canManage ? (
             <div className="mt-4">
               <UnarchiveBucketButton bucketId={bucket.id} bucketName={bucket.name} />
@@ -160,7 +165,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
 
       {bucket.description ? (
         <Card>
-          <CardTitle>About</CardTitle>
+          <CardTitle>Beschreibung</CardTitle>
           <p className="mt-3 text-sm leading-relaxed text-gh-text-secondary">
             {bucket.description}
           </p>
@@ -168,24 +173,28 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
       ) : null}
 
       <Card>
-        <CardTitle>This month in this bucket</CardTitle>
-        <CardDescription>Calendar month totals for entries assigned here.</CardDescription>
+        <CardTitle>Dieser Monat</CardTitle>
+        <CardDescription>Monatssummen für Einträge in diesem Bucket.</CardDescription>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">Expenses</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">
+              Ausgaben
+            </p>
             <p className="mt-1 text-xl font-semibold tabular-nums text-gh-danger">
               {formatEur(expensesMonth)}
             </p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">Income</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">
+              Einnahmen
+            </p>
             <p className="mt-1 text-xl font-semibold tabular-nums text-gh-positive">
               {formatEur(incomeMonth)}
             </p>
           </div>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">
-              Net (in bucket)
+              Saldo (im Bucket)
             </p>
             <p className="mt-1 text-xl font-semibold tabular-nums text-gh-text">
               {formatEur(incomeMonth - expensesMonth)}
@@ -198,14 +207,14 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
         <Card>
           <CardTitle>Budget</CardTitle>
           <CardDescription>
-            Only expenses count against the cap (income does not refill it).
+            Nur Ausgaben zählen gegen das Budget — Einnahmen füllen es nicht auf.
           </CardDescription>
           <div className="mt-4 space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-gh-text-muted">Spent {formatEur(expensesMonth)}</span>
+              <span className="text-gh-text-muted">Ausgegeben {formatEur(expensesMonth)}</span>
               <span className="font-medium tabular-nums text-gh-text">
-                of {formatEur(budgetCap)}
-                {budgetRemaining != null ? ` · ${formatEur(budgetRemaining)} left` : ""}
+                von {formatEur(budgetCap)}
+                {budgetRemaining != null ? ` · ${formatEur(budgetRemaining)} übrig` : ""}
               </span>
             </div>
             <ProgressBar
@@ -215,12 +224,10 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
               }
             />
             {spentRatio >= 1 ? (
-              <p className="text-sm text-gh-danger">
-                Over cap for the month in this bucket.
-              </p>
+              <p className="text-sm text-gh-danger">Diesen Monat über Budget in diesem Bucket.</p>
             ) : spentRatio >= 0.85 ? (
               <p className="text-sm text-gh-warning">
-                Running tight — under 15% of budget left.
+                Wird knapp — weniger als 15 % Budget übrig.
               </p>
             ) : null}
           </div>
@@ -229,8 +236,8 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
 
       {categoryRows.length > 0 ? (
         <Card>
-          <CardTitle>Top categories (expenses)</CardTitle>
-          <CardDescription>This month, by category, inside this bucket.</CardDescription>
+          <CardTitle>Top-Kategorien (Ausgaben)</CardTitle>
+          <CardDescription>Diesen Monat, nach Kategorie, in diesem Bucket.</CardDescription>
           <ul className="mt-4 divide-y divide-gh-border-subtle">
             {categoryRows.slice(0, 8).map((row) => (
               <li key={row.cid} className="flex justify-between py-2 text-sm">
@@ -246,8 +253,10 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
 
       {!bucket.is_archived ? (
         <Card>
-          <CardTitle>Quick add</CardTitle>
-          <CardDescription>Defaults to this bucket — fastest path on mobile.</CardDescription>
+          <CardTitle>Schnell erfassen</CardTitle>
+          <CardDescription>
+            Standardmäßig in diesem Bucket — schnellster Weg auf dem Handy.
+          </CardDescription>
           <div className="mt-6">
             <EntryForm
               categories={categories}
@@ -260,10 +269,10 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
       ) : null}
 
       <Card>
-        <CardTitle>Recent entries</CardTitle>
-        <CardDescription>Latest in this bucket (this month).</CardDescription>
+        <CardTitle>Letzte Einträge</CardTitle>
+        <CardDescription>Diesen Monat in diesem Bucket.</CardDescription>
         {!monthEntries?.length ? (
-          <p className="mt-4 text-sm text-gh-text-muted">No entries this month yet.</p>
+          <p className="mt-4 text-sm text-gh-text-muted">Noch keine Einträge in diesem Monat.</p>
         ) : (
           <ul className="mt-4 divide-y divide-gh-border-subtle">
             {monthEntries.slice(0, 15).map((e) => (
@@ -271,7 +280,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
                 <div>
                   <p className="text-sm font-medium text-gh-text">{e.title}</p>
                   <p className="text-xs text-gh-text-muted">
-                    {new Date(e.occurred_at).toLocaleString()}
+                    {new Date(e.occurred_at).toLocaleString("de-DE")}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -290,7 +299,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
                       href={`/app/entries/${e.id}/edit`}
                       className="text-xs font-medium text-gh-text-muted underline decoration-gh-border transition-colors hover:text-gh-accent"
                     >
-                      Edit
+                      Bearbeiten
                     </Link>
                   ) : null}
                 </div>
@@ -303,8 +312,8 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
       {bucket.type === "shared" ? (
         <>
           <Card>
-            <CardTitle>Join code</CardTitle>
-            <CardDescription>Share with people who should become members.</CardDescription>
+            <CardTitle>Beitrittscode</CardTitle>
+            <CardDescription>Teile ihn mit Personen, die Mitglied werden sollen.</CardDescription>
             <p className="mt-4 text-3xl font-semibold tracking-[0.25em] tabular-nums text-gh-text">
               {bucket.join_code}
             </p>
@@ -313,25 +322,27 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
                 <RegenerateJoinButton bucketId={bucket.id} />
               </div>
             ) : (
-              <p className="mt-4 text-xs text-gh-text-muted">Only admins can rotate the join code.</p>
+              <p className="mt-4 text-xs text-gh-text-muted">
+                Nur Admins können den Beitrittscode neu erzeugen.
+              </p>
             )}
           </Card>
 
           <Card>
-            <CardTitle>Fairness · this month</CardTitle>
-            <CardDescription>Soll/Ist from shared rules — expenses only.</CardDescription>
+            <CardTitle>Fairness · dieser Monat</CardTitle>
+            <CardDescription>Soll/Ist gemäß Anteilen — nur Ausgaben.</CardDescription>
             {!shareBalanced ? (
               <p className="mt-3 rounded-xl border border-gh-warning/30 bg-gh-warning-soft px-3 py-2 text-sm text-gh-warning">
-                Member shares sum to {shareSum.toFixed(1)}% (target 100%). Rebalance after new
-                joins.
+                Mitglieder-Anteile summieren sich auf {shareSum.toFixed(1)} % (Ziel 100 %). Bitte
+                nach neuen Beitritten angleichen.
               </p>
             ) : null}
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[480px] text-left text-sm">
                 <thead className="text-xs uppercase tracking-wide text-gh-text-muted">
                   <tr>
-                    <th className="py-2 pr-3">Member</th>
-                    <th className="py-2 pr-3">Share</th>
+                    <th className="py-2 pr-3">Mitglied</th>
+                    <th className="py-2 pr-3">Anteil</th>
                     <th className="py-2 pr-3">Soll</th>
                     <th className="py-2 pr-3">Ist</th>
                     <th className="py-2">Δ</th>
@@ -361,8 +372,8 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
           </Card>
 
           <Card>
-            <CardTitle>Members</CardTitle>
-            <CardDescription>Roles and target share of household spend.</CardDescription>
+            <CardTitle>Mitglieder</CardTitle>
+            <CardDescription>Rollen und Zielanteil an den Haushaltsausgaben.</CardDescription>
             <ul className="mt-4 divide-y divide-gh-border-subtle">
               {(members ?? []).map((m) => {
                 const p = profileById.get(m.user_id);
@@ -371,10 +382,12 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
                   <li key={m.id} className="flex items-center justify-between py-3">
                     <div>
                       <p className="text-sm font-medium text-gh-text">{label}</p>
-                      <p className="text-xs text-gh-text-muted">{m.role}</p>
+                      <p className="text-xs text-gh-text-muted">
+                        {m.role === "admin" ? "Admin" : "Mitglied"}
+                      </p>
                     </div>
                     <p className="text-sm tabular-nums text-gh-text-secondary">
-                      {Number(m.share_percent).toFixed(1)}%
+                      {Number(m.share_percent).toFixed(1)} %
                     </p>
                   </li>
                 );
@@ -382,9 +395,9 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
             </ul>
             {canManage ? (
               <div className="mt-6 border-t border-gh-border-subtle pt-6">
-                <p className="text-sm font-medium text-gh-text">Adjust shares</p>
+                <p className="text-sm font-medium text-gh-text">Anteile anpassen</p>
                 <p className="mt-1 text-xs text-gh-text-muted">
-                  After someone joins with a code, rebalance so the total stays at 100%.
+                  Nach einem neuen Beitritt bitte so anpassen, dass die Summe 100 % bleibt.
                 </p>
                 <div className="mt-4">
                   <MemberSharesForm
@@ -409,8 +422,8 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
 
       {canManage ? (
         <Card>
-          <CardTitle>Settings</CardTitle>
-          <CardDescription>Name and description.</CardDescription>
+          <CardTitle>Einstellungen</CardTitle>
+          <CardDescription>Name und Beschreibung.</CardDescription>
           <div className="mt-6 max-w-lg">
             <BucketMetaForm
               bucketId={bucket.id}
@@ -423,8 +436,8 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
 
       {canManage ? (
         <Card>
-          <CardTitle>Budget settings</CardTitle>
-          <CardDescription>Toggle monthly cap and amount.</CardDescription>
+          <CardTitle>Budget-Einstellungen</CardTitle>
+          <CardDescription>Monatsbudget an/aus und Betrag.</CardDescription>
           <div className="mt-6 max-w-lg">
             <BucketBudgetForm
               bucketId={bucket.id}
@@ -438,8 +451,8 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
 
       {canManage ? (
         <Card>
-          <CardTitle>Danger zone</CardTitle>
-          <CardDescription>Archiving hides the bucket from main lists.</CardDescription>
+          <CardTitle>Gefahrenzone</CardTitle>
+          <CardDescription>Archivieren blendet den Bucket aus den Hauptlisten aus.</CardDescription>
           <div className="mt-4">
             <ArchiveBucketButton bucketId={bucket.id} bucketName={bucket.name} />
           </div>

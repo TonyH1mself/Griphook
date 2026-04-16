@@ -11,17 +11,21 @@ export type EntryActionState = { error?: string; fieldErrors?: Record<string, st
 
 function friendlyEntryError(error: { message?: string; code?: string }): string {
   if (error.code === "42501" || /permission denied|rls/i.test(error.message ?? "")) {
-    return "You do not have permission to change this entry.";
+    return "Du darfst diesen Eintrag nicht ändern.";
   }
   if (error.code === "23503") {
-    return "That category or bucket no longer exists. Pick another.";
+    return "Diese Kategorie oder dieser Bucket existiert nicht mehr. Bitte andere wählen.";
   }
-  return "Something went wrong. Please try again.";
+  return "Etwas ist schiefgelaufen. Bitte erneut versuchen.";
 }
 
 function bucketIdFromForm(formData: FormData) {
   const raw = String(formData.get("bucket_id") ?? "");
   return raw && raw !== "none" ? raw : undefined;
+}
+
+function transactionTypeFromForm(formData: FormData): "income" | "expense" {
+  return formData.get("transaction_type") === "income" ? "income" : "expense";
 }
 
 export async function createEntry(
@@ -32,10 +36,10 @@ export async function createEntry(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Du bist nicht angemeldet." };
 
   const parsed = parseForm(entrySchema, {
-    transaction_type: formData.get("transaction_type") === "income" ? "income" : "expense",
+    transaction_type: transactionTypeFromForm(formData),
     amount: String(formData.get("amount") ?? ""),
     title: String(formData.get("title") ?? ""),
     notes: String(formData.get("notes") ?? "") || undefined,
@@ -79,13 +83,13 @@ export async function updateEntry(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Du bist nicht angemeldet." };
 
   const entryId = String(formData.get("entry_id") ?? "");
-  if (!entryId) return { error: "Missing entry." };
+  if (!entryId) return { error: "Eintrag fehlt." };
 
   const parsed = parseForm(entrySchema, {
-    transaction_type: formData.get("transaction_type") === "income" ? "income" : "expense",
+    transaction_type: transactionTypeFromForm(formData),
     amount: String(formData.get("amount") ?? ""),
     title: String(formData.get("title") ?? ""),
     notes: String(formData.get("notes") ?? "") || undefined,
@@ -126,7 +130,7 @@ export async function deleteEntry(entryId: string): Promise<{ error?: string; ok
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Du bist nicht angemeldet." };
 
   const { data: row } = await supabase
     .from("entries")
@@ -135,7 +139,7 @@ export async function deleteEntry(entryId: string): Promise<{ error?: string; ok
     .eq("created_by_user_id", user.id)
     .maybeSingle();
 
-  if (!row) return { error: "Entry not found or you cannot delete it." };
+  if (!row) return { error: "Eintrag nicht gefunden oder nicht löschbar." };
 
   const { error } = await supabase
     .from("entries")

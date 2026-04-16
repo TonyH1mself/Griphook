@@ -34,25 +34,25 @@ export default async function RecurringPage({
   return (
     <div className="space-y-10">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Recurring</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Wiederkehrend</h1>
         <p className="mt-1 text-sm text-gh-text-muted">
-          Templates only for now — automation can be layered in later without changing this
-          structure.
+          Aktuell nur Vorlagen — Automatisierung lässt sich später ergänzen, ohne die Struktur zu
+          ändern.
         </p>
       </header>
 
       {sp.saved === "1" ? (
         <p className="rounded-2xl border border-gh-accent/25 bg-gh-info-soft px-4 py-3 text-sm text-gh-positive">
-          Template saved.
+          Vorlage gespeichert.
         </p>
       ) : null}
 
       <section className="space-y-4">
-        <h2 className="text-sm font-semibold text-gh-text">Templates</h2>
+        <h2 className="text-sm font-semibold text-gh-text">Vorlagen</h2>
         {!templates?.length ? (
           <EmptyState
-            title="No recurring templates"
-            description="Add rent, subscriptions, or salary reminders."
+            title="Keine Vorlagen"
+            description="Lege wiederkehrende Posten wie Miete, Abos oder Gehalt an."
           />
         ) : (
           <ListPanel>
@@ -74,15 +74,26 @@ export default async function RecurringPage({
                     <p className="text-sm font-medium text-gh-text">{t.title}</p>
                     <p className="text-xs text-gh-text-muted">
                       {cat}
-                      {bkt ? ` · ${bkt}` : ""} · {t.frequency} · next{" "}
-                      {new Date(t.next_due_at).toLocaleString()}
-                      {!t.is_active ? " · paused" : ""}
+                      {bkt ? ` · ${bkt}` : ""} ·{" "}
+                      {t.frequency === "weekly"
+                        ? "wöchentlich"
+                        : t.frequency === "biweekly"
+                          ? "14-tägig"
+                          : t.frequency === "monthly"
+                            ? "monatlich"
+                            : t.frequency === "quarterly"
+                              ? "quartalsweise"
+                              : t.frequency === "yearly"
+                                ? "jährlich"
+                                : t.frequency}{" "}
+                      · nächste Fälligkeit {new Date(t.next_due_at).toLocaleString("de-DE")}
+                      {!t.is_active ? " · pausiert" : ""}
                     </p>
                     <Link
                       href={`/app/recurring/${t.id}/edit`}
                       className="mt-1 inline-block text-xs font-medium text-gh-text-muted underline decoration-gh-border transition-colors hover:text-gh-accent"
                     >
-                      Edit
+                      Bearbeiten
                     </Link>
                   </div>
                   <div className="flex items-center gap-3">
@@ -106,9 +117,9 @@ export default async function RecurringPage({
       </section>
 
       <Card>
-        <CardTitle>New template</CardTitle>
+        <CardTitle>Neue Vorlage</CardTitle>
         <CardDescription>
-          We store the schedule — generation can be manual or automated later.
+          Wir speichern den Zeitplan — die Ausführung kann manuell oder automatisiert erfolgen.
         </CardDescription>
         <div className="mt-6">
           <RecurringForm categories={categories ?? []} buckets={buckets ?? []} />

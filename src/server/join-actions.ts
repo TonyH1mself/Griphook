@@ -13,10 +13,11 @@ export type JoinActionState = {
 };
 
 function mapJoinRpcError(message: string): string {
-  if (message.includes("GH_NOT_AUTHENTICATED")) return "Not signed in.";
-  if (message.includes("GH_INVALID_CODE")) return "No shared bucket matches that code.";
-  if (message.includes("GH_ALREADY_MEMBER")) return "You are already in this bucket.";
-  return message || "Could not join bucket.";
+  if (message.includes("GH_NOT_AUTHENTICATED")) return "Nicht angemeldet.";
+  if (message.includes("GH_INVALID_CODE"))
+    return "Zu diesem Code wurde kein gemeinsamer Bucket gefunden.";
+  if (message.includes("GH_ALREADY_MEMBER")) return "Du bist bereits Mitglied dieses Buckets.";
+  return message || "Beitritt nicht möglich.";
 }
 
 export async function joinBucketByCode(
@@ -27,7 +28,7 @@ export async function joinBucketByCode(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Nicht angemeldet." };
 
   const parsed = parseForm(joinCodeSchema, {
     code: String(formData.get("code") ?? "").trim(),

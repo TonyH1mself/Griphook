@@ -41,7 +41,7 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string | null
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">E-Mail</Label>
         <Input
           id="email"
           name="email"
@@ -54,7 +54,7 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string | null
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Passwort</Label>
         <Input
           id="password"
           name="password"
@@ -68,15 +68,15 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string | null
       </div>
       {error ? <p className="text-sm text-gh-error-text">{error}</p> : null}
       <Button type="submit" className="min-h-11 w-full rounded-2xl" disabled={pending}>
-        {pending ? "Signing in…" : "Sign in"}
+        {pending ? "Melde an…" : "Anmelden"}
       </Button>
       <p className="text-center text-sm text-gh-text-muted">
-        No account?{" "}
+        Noch kein Konto?{" "}
         <Link
           href="/signup"
           className="font-medium text-gh-accent underline decoration-gh-accent/40 underline-offset-2 transition-colors hover:text-gh-accent-hover"
         >
-          Sign up
+          Registrieren
         </Link>
       </p>
     </form>

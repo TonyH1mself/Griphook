@@ -20,7 +20,7 @@ export async function completeOnboarding(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Nicht angemeldet." };
 
   const parsed = parseForm(onboardingSchema, {
     username: String(formData.get("username") ?? ""),
@@ -40,16 +40,16 @@ export async function completeOnboarding(
   const { data, error } = await supabase.from("profiles").upsert(row, { onConflict: "id" }).select("id").single();
 
   if (error) {
-    if (error.code === "23505") return { error: "That username is already taken." };
+    if (error.code === "23505") return { error: "Dieser Benutzername ist bereits vergeben." };
     const setupHint = missingProfilesTableMessage(error);
     if (setupHint) return { error: setupHint };
-    return { error: "We could not save your profile. Please try again." };
+    return { error: "Profil konnte nicht gespeichert werden. Bitte erneut versuchen." };
   }
 
   if (!data?.id) {
     return {
       error:
-        "We could not save your profile. If this keeps happening, confirm migrations are applied in Supabase (see docs/setup.md).",
+        "Profil konnte nicht gespeichert werden. Wenn das wiederholt passiert, bitte prüfen, ob die Supabase-Migrationen angewendet sind (siehe docs/setup.md).",
     };
   }
 

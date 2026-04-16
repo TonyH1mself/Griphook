@@ -69,19 +69,19 @@ export function RecurringForm({
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="transaction_type">Type</Label>
+          <Label htmlFor="transaction_type">Typ</Label>
           <select
             id="transaction_type"
             name="transaction_type"
             defaultValue={initial?.transaction_type ?? "expense"}
             className={cn(selectBase, fieldErr(state, "transaction_type") && selectInvalid)}
           >
-            <option value="expense">Expense</option>
-            <option value="income">Income</option>
+            <option value="expense">Ausgabe</option>
+            <option value="income">Einnahme</option>
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (EUR)</Label>
+          <Label htmlFor="amount">Betrag (EUR)</Label>
           <Input
             id="amount"
             name="amount"
@@ -96,19 +96,19 @@ export function RecurringForm({
           ) : null}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="frequency">Frequency</Label>
+          <Label htmlFor="frequency">Intervall</Label>
           <select
             id="frequency"
             name="frequency"
             defaultValue={initial?.frequency ?? "monthly"}
             className={cn(selectBase, fieldErr(state, "frequency") && selectInvalid)}
           >
-            <option value="monthly">Monthly</option>
-            <option value="weekly">Weekly</option>
+            <option value="monthly">Monatlich</option>
+            <option value="weekly">Wöchentlich</option>
           </select>
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="title">Title</Label>
+          <Label htmlFor="title">Bezeichnung</Label>
           <Input
             id="title"
             name="title"
@@ -122,7 +122,7 @@ export function RecurringForm({
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="category_id">Category</Label>
+          <Label htmlFor="category_id">Kategorie</Label>
           <select
             id="category_id"
             name="category_id"
@@ -132,7 +132,7 @@ export function RecurringForm({
             aria-invalid={!!fieldErr(state, "category_id")}
           >
             <option value="" disabled>
-              Select a category
+              Kategorie auswählen
             </option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -152,10 +152,10 @@ export function RecurringForm({
             defaultValue={defaultBucket === null ? "none" : defaultBucket}
             className={cn(selectBase, fieldErr(state, "bucket_id") && selectInvalid)}
           >
-            <option value="none">No bucket</option>
+            <option value="none">Kein Bucket</option>
             {buckets.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.name} {b.type === "shared" ? "(shared)" : ""}
+                {b.name} {b.type === "shared" ? "(gemeinsam)" : ""}
               </option>
             ))}
           </select>
@@ -164,7 +164,7 @@ export function RecurringForm({
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="next_due_at">Next due</Label>
+          <Label htmlFor="next_due_at">Nächste Fälligkeit</Label>
           <Input
             id="next_due_at"
             name="next_due_at"
@@ -179,7 +179,7 @@ export function RecurringForm({
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="notes">Notes (optional)</Label>
+          <Label htmlFor="notes">Notizen (optional)</Label>
           <Textarea
             id="notes"
             name="notes"
@@ -194,7 +194,11 @@ export function RecurringForm({
       </div>
       {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" className="min-h-12 w-full rounded-2xl sm:w-auto" disabled={pending}>
-        {pending ? "Saving…" : mode === "edit" ? "Save changes" : "Save template"}
+        {pending
+          ? "Speichere…"
+          : mode === "edit"
+            ? "Änderungen speichern"
+            : "Vorlage speichern"}
       </Button>
     </form>
   );

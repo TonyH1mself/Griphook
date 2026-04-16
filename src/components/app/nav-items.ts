@@ -13,10 +13,10 @@ import {
 export type NavItem = {
   href: string;
   label: string;
-  /** Matcher for active state (the route the item owns). */
+  /** Matcher für den Aktiv-Zustand (die Route, zu der dieses Item gehört). */
   match: (pathname: string) => boolean;
   icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
-  /** Emphasized action, rendered with accent fill. */
+  /** Hervorgehobene Aktion (Akzent-Füllung). */
   emphasis?: boolean;
 };
 
@@ -24,14 +24,15 @@ const startsWith = (prefix: string) => (p: string) =>
   p === prefix || p.startsWith(`${prefix}/`);
 
 /**
- * Primary navigation — identical order mobile + desktop.
- * Kept intentionally short (6) so the arc menu never feels crowded.
+ * Primäre Navigation — bewusst auf 5 Einträge begrenzt, damit das mobile
+ * Arc-Menü nie überladen wirkt. Auf Desktop zusätzlich durch Settings/Sekundär
+ * ergänzt (siehe `tertiaryNav` und Sidebar).
  */
 export const primaryNav: readonly NavItem[] = [
-  { href: "/app", label: "Dashboard", match: (p) => p === "/app", icon: IconDashboard },
+  { href: "/app", label: "Start", match: (p) => p === "/app", icon: IconDashboard },
   {
     href: "/app/entries",
-    label: "Entries",
+    label: "Einträge",
     match: (p) =>
       p !== "/app/entries/new" && (p === "/app/entries" || p.startsWith("/app/entries/")),
     icon: IconEntries,
@@ -44,27 +45,41 @@ export const primaryNav: readonly NavItem[] = [
   },
   {
     href: "/app/shared",
-    label: "Shared",
+    label: "Geteilt",
     match: (p) => p === "/app/shared" || p.startsWith("/app/shared/"),
     icon: IconShared,
   },
   {
     href: "/app/entries/new",
-    label: "Add",
+    label: "Neu",
     match: (p) => p === "/app/entries/new",
     icon: IconAdd,
     emphasis: true,
   },
-  { href: "/app/settings", label: "Settings", match: startsWith("/app/settings"), icon: IconSettings },
 ] as const;
 
-/** Secondary navigation — only surfaced on desktop sidebar or in-context. */
+/** Sekundäre Navigation — Desktop-Sidebar, mobile über Topbar/Settings. */
 export const secondaryNav: readonly NavItem[] = [
-  { href: "/app/recurring", label: "Recurring", match: startsWith("/app/recurring"), icon: IconRecurring },
+  {
+    href: "/app/recurring",
+    label: "Wiederkehrend",
+    match: startsWith("/app/recurring"),
+    icon: IconRecurring,
+  },
   {
     href: "/app/categories",
-    label: "Categories",
+    label: "Kategorien",
     match: startsWith("/app/categories"),
     icon: IconCategories,
+  },
+] as const;
+
+/** Tertiäre Navigation — Settings, Profil etc. */
+export const tertiaryNav: readonly NavItem[] = [
+  {
+    href: "/app/settings",
+    label: "Einstellungen",
+    match: startsWith("/app/settings"),
+    icon: IconSettings,
   },
 ] as const;

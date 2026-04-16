@@ -33,7 +33,8 @@ export function MemberSharesForm({ bucketId, members }: { bucketId: string; memb
     <form ref={formRef} action={action} className="space-y-4">
       <input type="hidden" name="bucket_id" value={bucketId} />
       <p className="text-xs text-gh-text-muted">
-        Target split of <strong>shared expenses</strong> this month (Soll). Must total 100%.
+        Zielverteilung der <strong>gemeinsamen Ausgaben</strong> (Soll). Muss zusammen 100 %
+        ergeben.
       </p>
       <ul className="space-y-3">
         {members.map((m) => (
@@ -71,14 +72,14 @@ export function MemberSharesForm({ bucketId, members }: { bucketId: string; memb
             });
           }}
         >
-          Split evenly
+          Gleich aufteilen
         </Button>
         <Button type="submit" className="min-h-11 rounded-2xl" disabled={pending}>
-          {pending ? "Saving…" : "Save shares"}
+          {pending ? "Speichere…" : "Anteile speichern"}
         </Button>
       </div>
       {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
-      {state.ok ? <p className="text-sm text-gh-positive">Shares updated.</p> : null}
+      {state.ok ? <p className="text-sm text-gh-positive">Anteile aktualisiert.</p> : null}
     </form>
   );
 }

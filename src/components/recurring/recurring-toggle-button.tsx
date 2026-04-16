@@ -35,7 +35,7 @@ export function RecurringToggleButton({
           });
         }}
       >
-        {pending ? "…" : isActive ? "Pause" : "Resume"}
+        {pending ? "…" : isActive ? "Pausieren" : "Fortsetzen"}
       </Button>
       {error ? <span className="text-xs text-gh-error-text">{error}</span> : null}
     </div>

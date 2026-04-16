@@ -28,15 +28,17 @@ export function OnboardingForm() {
   return (
     <form action={action} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="username">Benutzername</Label>
         <Input id="username" name="username" autoComplete="username" className="min-h-11" />
-        <p className="text-xs text-gh-text-muted">Lowercase letters, numbers, underscores. Unique.</p>
+        <p className="text-xs text-gh-text-muted">
+          Kleinbuchstaben, Zahlen und Unterstriche. Einzigartig.
+        </p>
         {fe(state, "username") ? (
           <p className="text-xs text-gh-error-text">{fe(state, "username")}</p>
         ) : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="display_name">Display name</Label>
+        <Label htmlFor="display_name">Anzeigename</Label>
         <Input id="display_name" name="display_name" autoComplete="name" className="min-h-11" />
         {fe(state, "display_name") ? (
           <p className="text-xs text-gh-error-text">{fe(state, "display_name")}</p>
@@ -44,7 +46,7 @@ export function OnboardingForm() {
       </div>
       {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" className="min-h-11 w-full rounded-2xl" disabled={pending}>
-        {pending ? "Saving…" : "Continue"}
+        {pending ? "Speichere…" : "Weiter"}
       </Button>
     </form>
   );

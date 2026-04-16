@@ -3,8 +3,9 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AppRefreshButton } from "./app-refresh-button";
 import { IconBrandDots } from "./nav-icons";
-import { primaryNav, secondaryNav, type NavItem } from "./nav-items";
+import { primaryNav, secondaryNav, tertiaryNav, type NavItem } from "./nav-items";
 
 const navInteraction =
   "transition-[background-color,color,border-color,transform] duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none";
@@ -56,14 +57,14 @@ export function AppSideNav() {
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold tracking-tight text-gh-text">GripHook</p>
           <p className="truncate text-[11px] uppercase tracking-wider text-gh-text-muted">
-            Finance cockpit
+            Finanzen · ruhig
           </p>
         </div>
       </div>
 
-      <nav className="mt-7 flex flex-1 flex-col" aria-label="Primary">
+      <nav className="mt-7 flex flex-1 flex-col" aria-label="Hauptnavigation">
         <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-gh-text-muted">
-          Main
+          Haupt
         </p>
         <div className="flex flex-col gap-1">
           {primaryNav.map((item) => (
@@ -72,10 +73,17 @@ export function AppSideNav() {
         </div>
 
         <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-gh-text-muted">
-          More
+          Mehr
         </p>
         <div className="flex flex-col gap-1">
           {secondaryNav.map((item) => (
+            <SideLink key={item.href} item={item} active={item.match(pathname)} />
+          ))}
+        </div>
+
+        <div className="mt-auto flex flex-col gap-1 pt-6">
+          <AppRefreshButton variant="wide" className="mx-0 justify-start" />
+          {tertiaryNav.map((item) => (
             <SideLink key={item.href} item={item} active={item.match(pathname)} />
           ))}
         </div>

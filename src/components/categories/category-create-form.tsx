@@ -24,7 +24,7 @@ export function CategoryCreateForm() {
           id="new_category_name"
           name="name"
           required
-          placeholder="Groceries, Transit, …"
+          placeholder="Lebensmittel, Transport, …"
           className="min-h-11"
           autoComplete="off"
         />
@@ -33,14 +33,10 @@ export function CategoryCreateForm() {
         ) : null}
       </div>
       <Button type="submit" className="min-h-11 rounded-2xl" disabled={pending}>
-        {pending ? "Adding…" : "Add category"}
+        {pending ? "Füge hinzu…" : "Kategorie anlegen"}
       </Button>
-      {state.error ? (
-        <p className="text-sm text-gh-error-text">{state.error}</p>
-      ) : null}
-      {state.ok ? (
-        <p className="text-sm text-gh-positive">Category added.</p>
-      ) : null}
+      {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
+      {state.ok ? <p className="text-sm text-gh-positive">Kategorie angelegt.</p> : null}
     </form>
   );
 }

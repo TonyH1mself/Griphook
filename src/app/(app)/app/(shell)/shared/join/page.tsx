@@ -9,13 +9,13 @@ export default function JoinSharedBucketPage() {
           href="/app/shared"
           className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
         >
-          ← Shared
+          ← Geteilt
         </Link>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">
-          Join a shared bucket
+          Gemeinsamem Bucket beitreten
         </h1>
         <p className="mt-1 text-sm text-gh-text-muted">
-          Enter the numeric code you received from the bucket admin.
+          Gib den 6-stelligen Code ein, den du vom Bucket-Admin erhalten hast.
         </p>
       </div>
       <JoinBucketForm />

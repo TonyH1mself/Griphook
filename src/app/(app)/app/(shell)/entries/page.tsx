@@ -60,15 +60,15 @@ export default async function EntriesPage({
     <div className="space-y-8">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Entries</h1>
-          <p className="mt-1 text-sm text-gh-text-muted">Fast capture, clear history.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Einträge</h1>
+          <p className="mt-1 text-sm text-gh-text-muted">Schnell erfassen, klarer Verlauf.</p>
         </div>
-        <LinkButton href="/app/entries/new">New entry</LinkButton>
+        <LinkButton href="/app/entries/new">Neuer Eintrag</LinkButton>
       </header>
 
       {sp.saved === "1" ? (
         <p className="rounded-2xl border border-gh-accent/25 bg-gh-info-soft px-4 py-3 text-sm text-gh-positive">
-          Entry saved.
+          Eintrag gespeichert.
         </p>
       ) : null}
 
@@ -79,13 +79,13 @@ export default async function EntriesPage({
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
           <div className="min-w-0 flex-1 space-y-1">
             <label htmlFor="q" className="text-xs font-medium text-gh-text-muted">
-              Search title
+              Titel suchen
             </label>
             <input
               id="q"
               name="q"
               defaultValue={q}
-              placeholder="e.g. groceries"
+              placeholder="z. B. Einkauf"
               className={filterInput}
             />
           </div>
@@ -99,7 +99,7 @@ export default async function EntriesPage({
               defaultValue={bucketFilter ?? ""}
               className={`${filterInput} min-w-[12rem] sm:w-auto`}
             >
-              <option value="">All buckets</option>
+              <option value="">Alle Buckets</option>
               {(bucketOptions ?? []).map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
@@ -109,18 +109,18 @@ export default async function EntriesPage({
           </div>
           {typeFilter ? <input type="hidden" name="type" value={typeFilter} /> : null}
           <Button type="submit" className="min-h-11 w-full rounded-2xl sm:w-auto">
-            Apply
+            Anwenden
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="w-full text-xs font-medium uppercase tracking-wide text-gh-text-muted sm:w-auto sm:py-2">
-            Type
+            Typ
           </span>
           {(
             [
-              { key: null, label: "All" },
-              { key: "expense" as const, label: "Expenses" },
-              { key: "income" as const, label: "Income" },
+              { key: null, label: "Alle" },
+              { key: "expense" as const, label: "Ausgaben" },
+              { key: "income" as const, label: "Einnahmen" },
             ] as const
           ).map(({ key, label }) => {
             const active = typeFilter === key || (key === null && !typeFilter);
@@ -150,18 +150,18 @@ export default async function EntriesPage({
 
       {!entries?.length ? (
         <EmptyState
-          title="No entries match"
+          title="Keine Einträge gefunden"
           description={
             q || typeFilter || bucketFilter
-              ? "Try clearing filters or search."
-              : "Add your first income or expense. You can attach a bucket later."
+              ? "Filter oder Suche zurücksetzen."
+              : "Lege deinen ersten Eintrag an — einen Bucket kannst du später zuweisen."
           }
           action={
             !q && !typeFilter && !bucketFilter ? (
-              <LinkButton href="/app/entries/new">Create entry</LinkButton>
+              <LinkButton href="/app/entries/new">Eintrag anlegen</LinkButton>
             ) : (
               <LinkButton href="/app/entries" variant="secondary">
-                Clear filters
+                Filter zurücksetzen
               </LinkButton>
             )
           }
@@ -197,11 +197,11 @@ export default async function EntriesPage({
                           }
                         >
                           {bucket}
-                          {bucketType === "shared" ? " (shared)" : ""}
+                          {bucketType === "shared" ? " (gemeinsam)" : ""}
                         </span>
                       </>
                     ) : null}{" "}
-                    · {new Date(e.occurred_at).toLocaleString()}
+                    · {new Date(e.occurred_at).toLocaleString("de-DE")}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
@@ -220,7 +220,7 @@ export default async function EntriesPage({
                       href={`/app/entries/${e.id}/edit`}
                       className="text-xs font-medium text-gh-text-muted underline decoration-gh-border transition-colors hover:text-gh-accent"
                     >
-                      Edit
+                      Bearbeiten
                     </Link>
                   ) : null}
                 </div>

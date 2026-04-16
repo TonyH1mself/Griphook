@@ -25,10 +25,10 @@ export default async function LoginPage({
         href="/"
         className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
       >
-        ← Back
+        ← Zurück
       </Link>
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-gh-text">Sign in</h1>
-      <p className="mt-2 text-sm text-gh-text-muted">Welcome back to GripHook.</p>
+      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-gh-text">Anmelden</h1>
+      <p className="mt-2 text-sm text-gh-text-muted">Willkommen zurück bei GripHook.</p>
       {authError ? (
         <p className="mt-4 rounded-2xl border border-gh-danger/35 bg-gh-danger-soft px-4 py-3 text-sm text-gh-error-text">
           {authError}

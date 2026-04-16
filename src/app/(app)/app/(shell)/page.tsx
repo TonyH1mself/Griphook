@@ -1,4 +1,3 @@
-import { QuickAddEntry } from "@/components/entries/quick-add-entry";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { ListPanel } from "@/components/ui/list-panel";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -6,7 +5,6 @@ import { requireUser } from "@/lib/auth/guards";
 import { budgetHealthRows } from "@/lib/dashboard/budget-health";
 import { sharedBucketBreakdown, summarizeMonth } from "@/lib/domain";
 import { formatEur } from "@/lib/format";
-import { categoriesPickerOrFilter } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 
 function recurringDueLabel(iso: string) {
@@ -15,10 +13,10 @@ function recurringDueLabel(iso: string) {
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startDue = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   const days = Math.round((startDue.getTime() - startToday.getTime()) / 86400000);
-  if (days < 0) return `${d.toLocaleDateString()} · overdue`;
-  if (days === 0) return "Due today";
-  if (days === 1) return "Due tomorrow";
-  return `Due in ${days} days`;
+  if (days < 0) return `${d.toLocaleDateString("de-DE")} · überfällig`;
+  if (days === 0) return "Heute fällig";
+  if (days === 1) return "Morgen fällig";
+  return `Fällig in ${days} Tagen`;
 }
 
 const linkSubtle =
@@ -30,29 +28,24 @@ export default async function DashboardPage() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-  const [{ data: entries }, { data: buckets }, { data: categories }, { data: reminders }] =
-    await Promise.all([
-      supabase
-        .from("entries")
-        .select(
-          "id,transaction_type,amount,title,occurred_at,bucket_id,created_by_user_id,categories(name)",
-        )
-        .gte("occurred_at", monthStart.toISOString())
-        .lte("occurred_at", monthEnd.toISOString())
-        .order("occurred_at", { ascending: false }),
-      supabase.from("buckets").select("*").eq("is_archived", false).order("name"),
-      supabase
-        .from("categories")
-        .select("id,name")
-        .or(categoriesPickerOrFilter(user.id))
-        .order("name"),
-      supabase
-        .from("recurring_entry_templates")
-        .select("id,title,next_due_at,amount,transaction_type")
-        .eq("is_active", true)
-        .order("next_due_at", { ascending: true })
-        .limit(4),
-    ]);
+  const [{ data: entries }, { data: buckets }, { data: reminders }] = await Promise.all([
+    supabase
+      .from("entries")
+      .select(
+        "id,transaction_type,amount,title,occurred_at,bucket_id,created_by_user_id,categories(name)",
+      )
+      .gte("occurred_at", monthStart.toISOString())
+      .lte("occurred_at", monthEnd.toISOString())
+      .order("occurred_at", { ascending: false }),
+    supabase.from("buckets").select("*").eq("is_archived", false).order("name"),
+    supabase
+      .from("recurring_entry_templates")
+      .select("id,title,next_due_at,amount,transaction_type")
+      .eq("is_active", true)
+      .order("next_due_at", { ascending: true })
+      .limit(4),
+  ]);
+  void user;
 
   const entryRows =
     entries?.map((e) => ({
@@ -62,8 +55,6 @@ export default async function DashboardPage() {
     })) ?? [];
 
   const month = summarizeMonth(entryRows, now);
-
-  const quickBuckets = buckets?.map((b) => ({ id: b.id, name: b.name, type: b.type })) ?? [];
 
   const expensesByBucket = new Map<string, number>();
   for (const e of entries ?? []) {
@@ -116,35 +107,37 @@ export default async function DashboardPage() {
     <div className="space-y-10">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Dashboard</h1>
-        <p className="mt-1 text-sm text-gh-text-muted">Your month, prioritized.</p>
+        <p className="mt-1 text-sm text-gh-text-muted">Dein Monat, priorisiert.</p>
       </header>
-
-      {categories?.length ? (
-        <QuickAddEntry categories={categories} buckets={quickBuckets ?? []} />
-      ) : null}
 
       <section className="grid gap-3 sm:grid-cols-3">
         <Card className="sm:col-span-1">
-          <CardTitle className="text-base">Income</CardTitle>
-          <CardDescription>This month</CardDescription>
-          <p className="mt-3 text-2xl font-semibold tabular-nums text-gh-positive">{formatEur(month.income)}</p>
+          <CardTitle className="text-base">Einnahmen</CardTitle>
+          <CardDescription>Dieser Monat</CardDescription>
+          <p className="mt-3 text-2xl font-semibold tabular-nums text-gh-positive">
+            {formatEur(month.income)}
+          </p>
         </Card>
         <Card className="sm:col-span-1">
-          <CardTitle className="text-base">Expenses</CardTitle>
-          <CardDescription>This month</CardDescription>
-          <p className="mt-3 text-2xl font-semibold tabular-nums text-gh-danger">{formatEur(month.expense)}</p>
+          <CardTitle className="text-base">Ausgaben</CardTitle>
+          <CardDescription>Dieser Monat</CardDescription>
+          <p className="mt-3 text-2xl font-semibold tabular-nums text-gh-danger">
+            {formatEur(month.expense)}
+          </p>
         </Card>
         <Card className="border-gh-accent/25 shadow-[inset_0_0_0_1px_rgb(106_158_148/0.12)] sm:col-span-1">
           <CardTitle className="text-base">Saldo</CardTitle>
-          <CardDescription>In − out</CardDescription>
-          <p className="mt-3 text-2xl font-semibold tabular-nums text-gh-text">{formatEur(month.balance)}</p>
+          <CardDescription>Einnahmen − Ausgaben</CardDescription>
+          <p className="mt-3 text-2xl font-semibold tabular-nums text-gh-text">
+            {formatEur(month.balance)}
+          </p>
         </Card>
       </section>
 
       {health.length > 0 ? (
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-sm font-semibold text-gh-text">Budget pressure</h2>
+            <h2 className="text-sm font-semibold text-gh-text">Budget-Auslastung</h2>
             <Link href="/app/buckets" className={linkSubtle}>
               Buckets
             </Link>
@@ -162,14 +155,14 @@ export default async function DashboardPage() {
                     </Link>
                     <p className="mt-1 text-xs text-gh-text-muted">
                       {h.status === "over" ? (
-                        <span className="text-gh-danger">Over cap</span>
+                        <span className="text-gh-danger">Über Budget</span>
                       ) : h.status === "tight" ? (
-                        <span className="text-gh-warning">Running tight</span>
+                        <span className="text-gh-warning">Wird knapp</span>
                       ) : (
-                        "On track"
+                        "Im Rahmen"
                       )}{" "}
                       · {formatEur(h.spent)} / {formatEur(h.cap)}
-                      {h.remaining != null ? ` · ${formatEur(h.remaining)} left` : ""}
+                      {h.remaining != null ? ` · ${formatEur(h.remaining)} übrig` : ""}
                     </p>
                   </div>
                 </div>
@@ -194,13 +187,13 @@ export default async function DashboardPage() {
       {spendOnlyBuckets.length > 0 ? (
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-sm font-semibold text-gh-text">Other bucket spending</h2>
+            <h2 className="text-sm font-semibold text-gh-text">Weitere Bucket-Ausgaben</h2>
             <Link href="/app/buckets" className={linkSubtle}>
               Buckets
             </Link>
           </div>
           <p className="text-xs text-gh-text-muted">
-            No monthly cap — still tracking expenses this month.
+            Kein Budget gesetzt — Ausgaben werden trotzdem in diesem Monat erfasst.
           </p>
           <div className="grid gap-3">
             {spendOnlyBuckets.map((b) => {
@@ -216,7 +209,8 @@ export default async function DashboardPage() {
                         {b.name}
                       </Link>
                       <p className="mt-1 text-xs text-gh-text-muted">
-                        {b.type === "shared" ? "Shared" : "Private"} · {formatEur(spent)} expenses
+                        {b.type === "shared" ? "Gemeinsam" : "Privat"} · {formatEur(spent)}{" "}
+                        Ausgaben
                       </p>
                     </div>
                   </div>
@@ -229,14 +223,15 @@ export default async function DashboardPage() {
 
       {reminders && reminders.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-gh-text">Upcoming recurring</h2>
+          <h2 className="text-sm font-semibold text-gh-text">Anstehende Wiederkehrende</h2>
           <ListPanel>
             {reminders.map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div>
                   <p className="text-sm font-medium text-gh-text">{r.title}</p>
                   <p className="text-xs text-gh-text-muted">
-                    {recurringDueLabel(r.next_due_at)} · {new Date(r.next_due_at).toLocaleString()}
+                    {recurringDueLabel(r.next_due_at)} ·{" "}
+                    {new Date(r.next_due_at).toLocaleString("de-DE")}
                   </p>
                 </div>
                 <p className="text-sm font-medium tabular-nums text-gh-text-secondary">
@@ -246,7 +241,7 @@ export default async function DashboardPage() {
             ))}
           </ListPanel>
           <Link href="/app/recurring" className={`${linkSubtle} underline`}>
-            Manage recurring
+            Wiederkehrende verwalten
           </Link>
         </section>
       ) : null}
@@ -254,9 +249,9 @@ export default async function DashboardPage() {
       {sharedPreviews.length > 0 ? (
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-sm font-semibold text-gh-text">Shared fairness</h2>
+            <h2 className="text-sm font-semibold text-gh-text">Geteilte Fairness</h2>
             <Link href="/app/shared" className={linkSubtle}>
-              Shared
+              Geteilt
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -265,8 +260,8 @@ export default async function DashboardPage() {
                 <Card className="h-full transition-[background-color,box-shadow] duration-150 hover:bg-gh-surface motion-reduce:transition-none">
                   <CardTitle>{bucket.name}</CardTitle>
                   <CardDescription>
-                    {memberCount} {memberCount === 1 ? "member" : "members"} · {formatEur(total)}{" "}
-                    expenses · max |Δ| {formatEur(maxDelta)}
+                    {memberCount} {memberCount === 1 ? "Mitglied" : "Mitglieder"} ·{" "}
+                    {formatEur(total)} Ausgaben · max |Δ| {formatEur(maxDelta)}
                   </CardDescription>
                 </Card>
               </Link>
@@ -277,20 +272,20 @@ export default async function DashboardPage() {
 
       <section className="space-y-3">
         <div className="flex items-end justify-between gap-4">
-          <h2 className="text-sm font-semibold text-gh-text">Latest entries</h2>
+          <h2 className="text-sm font-semibold text-gh-text">Letzte Einträge</h2>
           <Link href="/app/entries/new" className={linkSubtle}>
-            Add
+            Neu
           </Link>
         </div>
         {recent.length === 0 ? (
           <Card>
-            <CardTitle>No entries this month</CardTitle>
-            <CardDescription>Start with a quick expense or income.</CardDescription>
+            <CardTitle>Noch keine Einträge in diesem Monat</CardTitle>
+            <CardDescription>Starte mit einer Ausgabe oder Einnahme.</CardDescription>
             <Link
               href="/app/entries/new"
               className="mt-4 inline-flex text-sm font-medium text-gh-accent underline decoration-gh-accent/40 underline-offset-2 transition-colors hover:text-gh-accent-hover"
             >
-              New entry
+              Neuer Eintrag
             </Link>
           </Card>
         ) : (
@@ -303,7 +298,7 @@ export default async function DashboardPage() {
                     {e.categories && typeof e.categories === "object" && "name" in e.categories
                       ? String((e.categories as { name: string }).name)
                       : "—"}{" "}
-                    · {new Date(e.occurred_at).toLocaleString()}
+                    · {new Date(e.occurred_at).toLocaleString("de-DE")}
                   </p>
                 </div>
                 <p

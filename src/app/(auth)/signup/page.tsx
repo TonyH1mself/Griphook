@@ -22,11 +22,11 @@ export default async function SignupPage({
         href="/"
         className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
       >
-        ← Back
+        ← Zurück
       </Link>
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-gh-text">Create your account</h1>
+      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-gh-text">Konto erstellen</h1>
       <p className="mt-2 text-sm text-gh-text-muted">
-        Buckets, entries, and shared pots — in minutes.
+        Buckets, Einträge und gemeinsame Töpfe — in wenigen Minuten.
       </p>
       <div className="mt-8">
         <SignupForm />

@@ -25,16 +25,20 @@ export default async function OnboardingPage({
 
   return (
     <main className="mx-auto flex min-h-full max-w-md flex-1 flex-col justify-center px-6 py-16">
-      <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Finish your profile</h1>
-      <p className="mt-2 text-sm text-gh-text-muted">Pick a username and how we should greet you.</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-gh-text">
+        Profil vervollständigen
+      </h1>
+      <p className="mt-2 text-sm text-gh-text-muted">
+        Wähle einen Benutzernamen und wie wir dich ansprechen sollen.
+      </p>
       {profileFetchWarn ? (
         <p
           className="mt-4 rounded-2xl border border-gh-warning/30 bg-gh-warning-soft px-4 py-3 text-sm text-gh-warning"
           role="status"
         >
-          We could not load your profile from the server. You can still try to save below — if it
-          keeps failing, check your connection and that Supabase migrations are applied (see
-          docs/setup.md).
+          Dein Profil konnte nicht vom Server geladen werden. Du kannst dennoch unten speichern —
+          wenn es wiederholt fehlschlägt, bitte Verbindung prüfen und sicherstellen, dass die
+          Supabase-Migrationen angewendet sind (siehe docs/setup.md).
         </p>
       ) : null}
       <div className="mt-8">

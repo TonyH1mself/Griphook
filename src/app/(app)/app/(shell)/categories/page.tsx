@@ -27,26 +27,32 @@ export default async function CategoriesPage() {
           href="/app/settings"
           className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
         >
-          ← Settings
+          ← Einstellungen
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">Categories</h1>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">Kategorien</h1>
         <p className="mt-1 text-sm text-gh-text-muted">
-          System categories stay fixed. Add your own for entries and recurring templates.
+          System-Kategorien sind fest. Eigene Kategorien ergänzen sie in Einträgen und
+          Wiederkehrenden.
         </p>
       </header>
 
       <Card>
-        <CardTitle>New category</CardTitle>
-        <CardDescription>Appears in pickers alongside GripHook defaults.</CardDescription>
+        <CardTitle>Neue Kategorie</CardTitle>
+        <CardDescription>
+          Erscheint in Auswahllisten neben den GripHook-Standards.
+        </CardDescription>
         <div className="mt-6 max-w-lg">
           <CategoryCreateForm />
         </div>
       </Card>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-gh-text">Built-in</h2>
+        <h2 className="text-sm font-semibold text-gh-text">Standard</h2>
         {!system.length ? (
-          <EmptyState title="No system categories" description="Check your database seed." />
+          <EmptyState
+            title="Keine System-Kategorien"
+            description="Bitte Datenbank-Seed prüfen."
+          />
         ) : (
           <ListPanel>
             {system.map((c) => (
@@ -59,11 +65,11 @@ export default async function CategoriesPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-gh-text">Yours</h2>
+        <h2 className="text-sm font-semibold text-gh-text">Deine</h2>
         {!yoursActive.length ? (
           <EmptyState
-            title="No custom categories yet"
-            description="Add one above — they stay private to your account."
+            title="Noch keine eigenen Kategorien"
+            description="Oben anlegen — sie bleiben privat für dein Konto."
           />
         ) : (
           <ul className="space-y-3">
@@ -84,9 +90,9 @@ export default async function CategoriesPage() {
 
       {yoursArchived.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-gh-text">Archived</h2>
+          <h2 className="text-sm font-semibold text-gh-text">Archiviert</h2>
           <p className="text-xs text-gh-text-muted">
-            Hidden from pickers. Existing entries keep their labels.
+            In Auswahllisten ausgeblendet. Bestehende Einträge behalten ihre Zuordnung.
           </p>
           <ul className="space-y-3">
             {yoursArchived.map((c) => (

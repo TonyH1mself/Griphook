@@ -10,12 +10,12 @@ export type RecurringActionState = { error?: string; fieldErrors?: Record<string
 
 function friendlyRecurringError(error: { message?: string; code?: string }): string {
   if (error.code === "42501" || /permission denied|rls/i.test(error.message ?? "")) {
-    return "You do not have permission to change this template.";
+    return "Du hast keine Berechtigung, diese Vorlage zu ändern.";
   }
   if (error.code === "23503") {
-    return "That category or bucket no longer exists. Pick another.";
+    return "Diese Kategorie oder der Bucket existiert nicht mehr. Bitte eine andere Auswahl treffen.";
   }
-  return "Something went wrong. Please try again.";
+  return "Etwas ist schiefgelaufen. Bitte erneut versuchen.";
 }
 
 function bucketIdFromForm(formData: FormData) {
@@ -31,7 +31,7 @@ export async function createRecurringTemplate(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Nicht angemeldet." };
 
   const parsed = parseForm(recurringSchema, {
     transaction_type: formData.get("transaction_type") === "income" ? "income" : "expense",
@@ -75,10 +75,10 @@ export async function updateRecurringTemplate(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Nicht angemeldet." };
 
   const templateId = String(formData.get("template_id") ?? "").trim();
-  if (!templateId) return { error: "Missing template." };
+  if (!templateId) return { error: "Vorlage fehlt." };
 
   const parsed = parseForm(recurringSchema, {
     transaction_type: formData.get("transaction_type") === "income" ? "income" : "expense",
@@ -112,7 +112,7 @@ export async function updateRecurringTemplate(
     .maybeSingle();
 
   if (error) return { error: friendlyRecurringError(error) };
-  if (!updated) return { error: "Template not found." };
+  if (!updated) return { error: "Vorlage nicht gefunden." };
 
   revalidatePath("/app/recurring");
   revalidatePath("/app");
@@ -128,7 +128,7 @@ export async function setRecurringTemplateActive(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Nicht angemeldet." };
 
   const { data: updated, error } = await supabase
     .from("recurring_entry_templates")
@@ -139,7 +139,7 @@ export async function setRecurringTemplateActive(
     .maybeSingle();
 
   if (error) return { error: friendlyRecurringError(error) };
-  if (!updated) return { error: "Template not found." };
+  if (!updated) return { error: "Vorlage nicht gefunden." };
 
   revalidatePath("/app/recurring");
   return { ok: true };

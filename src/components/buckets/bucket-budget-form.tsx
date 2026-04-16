@@ -40,12 +40,12 @@ export function BucketBudgetForm({
           className="h-5 w-5 rounded border-gh-border text-gh-accent focus:ring-gh-ring"
         />
         <Label htmlFor={`bdg-on-${bucketId}`} className="!normal-case !text-sm !font-medium !text-gh-text-secondary">
-          Monthly budget cap (expenses only)
+          Monatsbudget (nur Ausgaben)
         </Label>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor={`bdg-amt-${bucketId}`}>Amount (EUR)</Label>
+          <Label htmlFor={`bdg-amt-${bucketId}`}>Betrag (EUR)</Label>
           <Input
             id={`bdg-amt-${bucketId}`}
             name="budget_amount"
@@ -58,21 +58,21 @@ export function BucketBudgetForm({
           ) : null}
         </div>
         <div className="space-y-2">
-          <Label htmlFor={`bdg-per-${bucketId}`}>Period</Label>
+          <Label htmlFor={`bdg-per-${bucketId}`}>Periode</Label>
           <select
             id={`bdg-per-${bucketId}`}
             name="budget_period"
             defaultValue={budgetPeriod === "monthly" ? "monthly" : "none"}
             className={selectClass}
           >
-            <option value="monthly">Monthly</option>
-            <option value="none">None</option>
+            <option value="monthly">Monatlich</option>
+            <option value="none">Keine</option>
           </select>
         </div>
       </div>
       {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" variant="secondary" className="min-h-11 rounded-2xl" disabled={pending}>
-        {pending ? "Saving…" : "Save budget"}
+        {pending ? "Speichere…" : "Budget speichern"}
       </Button>
     </form>
   );

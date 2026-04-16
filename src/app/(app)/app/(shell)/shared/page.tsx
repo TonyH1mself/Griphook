@@ -55,19 +55,21 @@ export default async function SharedPage() {
     <div className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Shared</h1>
-          <p className="mt-1 text-sm text-gh-text-muted">Households, trips, and other shared pots.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Geteilt</h1>
+          <p className="mt-1 text-sm text-gh-text-muted">
+            Haushalte, Reisen und andere gemeinsame Töpfe.
+          </p>
         </div>
         <LinkButton href="/app/shared/join" variant="secondary">
-          Join with code
+          Mit Code beitreten
         </LinkButton>
       </header>
 
       {!buckets?.length ? (
         <EmptyState
-          title="No shared buckets yet"
-          description="Create a shared bucket from Buckets, or join someone else’s with a 6-digit code."
-          action={<LinkButton href="/app/shared/join">Join bucket</LinkButton>}
+          title="Noch keine gemeinsamen Buckets"
+          description="Unter „Buckets“ einen gemeinsamen Bucket anlegen — oder mit 6-stelligem Code beitreten."
+          action={<LinkButton href="/app/shared/join">Beitreten</LinkButton>}
         />
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
@@ -80,7 +82,7 @@ export default async function SharedPage() {
             const maxDelta = breakdown.reduce((m, row) => Math.max(m, Math.abs(row.delta)), 0);
             const budgetHint =
               b.has_budget && b.budget_period === "monthly" && b.budget_amount != null
-                ? ` · budget ${formatEur(Number(b.budget_amount))}`
+                ? ` · Budget ${formatEur(Number(b.budget_amount))}`
                 : "";
 
             return (
@@ -91,12 +93,12 @@ export default async function SharedPage() {
                 >
                   <p className="text-sm font-semibold text-gh-text">{b.name}</p>
                   <p className="mt-1 text-xs text-gh-text-muted">
-                    Code {b.join_code} · {n} {n === 1 ? "member" : "members"}
+                    Code {b.join_code} · {n} {n === 1 ? "Mitglied" : "Mitglieder"}
                     {budgetHint}
                   </p>
                   <p className="mt-3 text-sm text-gh-text-secondary">
-                    <span className="font-medium text-gh-text">{formatEur(total)}</span> expenses
-                    this month · max |Δ| {formatEur(maxDelta)}
+                    <span className="font-medium text-gh-text">{formatEur(total)}</span> Ausgaben
+                    diesen Monat · max |Δ| {formatEur(maxDelta)}
                   </p>
                 </Link>
               </li>

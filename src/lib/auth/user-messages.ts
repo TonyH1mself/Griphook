@@ -10,13 +10,13 @@ export const AUTH_QUERY_ERRORS = {
 
 const LOGIN_MESSAGES: Record<string, string> = {
   [AUTH_QUERY_ERRORS.CONFIG]:
-    "The app is not fully configured (missing Supabase settings). Check environment variables and try again.",
+    "Die App ist nicht vollständig konfiguriert (Supabase-Einstellungen fehlen). Bitte Umgebungsvariablen prüfen und erneut versuchen.",
   [AUTH_QUERY_ERRORS.CALLBACK_EXCHANGE]:
-    "We could not complete sign-in from your link. The link may have expired — request a new one or sign in with your password.",
+    "Die Anmeldung über den Link konnte nicht abgeschlossen werden. Der Link ist möglicherweise abgelaufen — neuen Link anfordern oder mit Passwort anmelden.",
   [AUTH_QUERY_ERRORS.CALLBACK_VERIFY]:
-    "We could not verify your email link. It may have expired — request a new confirmation email or sign in with your password.",
+    "Der E-Mail-Link konnte nicht verifiziert werden. Möglicherweise ist er abgelaufen — bitte neuen Bestätigungslink anfordern oder mit Passwort anmelden.",
   [AUTH_QUERY_ERRORS.MISSING_CODE]:
-    "That sign-in link was incomplete. Open the link from your email again, or sign in with your password.",
+    "Dieser Anmeldelink war unvollständig. Bitte Link erneut aus der E-Mail öffnen oder mit Passwort anmelden.",
 };
 
 export function loginPageErrorMessage(param: string | null | undefined): string | null {
@@ -31,7 +31,7 @@ export function loginPageErrorMessage(param: string | null | undefined): string 
   const known = LOGIN_MESSAGES[decoded];
   if (known) return known;
   if (/^[a-z0-9_]+$/.test(decoded)) {
-    return "Something went wrong during sign-in. Please try again.";
+    return "Bei der Anmeldung ist etwas schiefgelaufen. Bitte erneut versuchen.";
   }
   return decoded;
 }
@@ -47,27 +47,27 @@ export function formatAuthErrorForUser(err: AuthError): string {
   const { message, code } = normalizeAuthError(err);
 
   if (code === "email_not_confirmed" || message.includes("email not confirmed")) {
-    return "Please confirm your email first. Check your inbox for the confirmation link.";
+    return "Bitte bestätige zuerst deine E-Mail. Den Bestätigungslink findest du in deinem Posteingang.";
   }
   if (
     code === "invalid_credentials" ||
     message.includes("invalid login credentials") ||
     message.includes("invalid email or password")
   ) {
-    return "Incorrect email or password.";
+    return "Falsche E-Mail oder falsches Passwort.";
   }
   if (message.includes("user already registered") || code === "signup_disabled") {
-    return "This email is already registered. Try signing in instead.";
+    return "Diese E-Mail ist bereits registriert. Bitte anmelden.";
   }
   if (message.includes("password") && message.includes("at least")) {
-    return "Password does not meet requirements. Use at least 8 characters.";
+    return "Das Passwort erfüllt nicht die Anforderungen. Mindestens 8 Zeichen verwenden.";
   }
   if (message.includes("rate limit") || message.includes("too many requests")) {
-    return "Too many attempts. Wait a moment and try again.";
+    return "Zu viele Versuche. Bitte einen Moment warten und erneut versuchen.";
   }
   if (message.includes("network") || message.includes("fetch")) {
-    return "Network error. Check your connection and try again.";
+    return "Netzwerkfehler. Bitte Verbindung prüfen und erneut versuchen.";
   }
 
-  return "Something went wrong. Please try again.";
+  return "Etwas ist schiefgelaufen. Bitte erneut versuchen.";
 }

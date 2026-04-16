@@ -27,7 +27,7 @@ export function ArchiveBucketButton({
           setError(null);
           if (
             !window.confirm(
-              `Archive “${bucketName}”? You can restore it anytime from Buckets → Archived.`,
+              `„${bucketName}“ archivieren? Du kannst ihn jederzeit unter Buckets → Archiviert wiederherstellen.`,
             )
           )
             return;
@@ -42,7 +42,7 @@ export function ArchiveBucketButton({
           });
         }}
       >
-        {pending ? "Archiving…" : "Archive bucket"}
+        {pending ? "Archiviere…" : "Bucket archivieren"}
       </Button>
       {error ? <p className="text-xs text-gh-error-text">{error}</p> : null}
     </div>

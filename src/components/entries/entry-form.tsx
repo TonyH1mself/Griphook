@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { createEntry, updateEntry, type EntryActionState } from "@/server/entry-actions";
-import { useActionState, useState } from "react";
+import { useActionState, useId, useState } from "react";
 
 type Category = { id: string; name: string };
 type Bucket = { id: string; name: string; type: string };
@@ -36,7 +36,6 @@ export function EntryForm({
   initial,
   defaultBucketId,
   variant = "default",
-  /** After create, redirect here instead of the entries list (internal path only). */
   returnTo,
 }: {
   categories: Category[];
@@ -44,16 +43,15 @@ export function EntryForm({
   mode?: "create" | "edit";
   initial?: EntryInitial;
   defaultBucketId?: string | null;
-  /** Hides notes for compact dashboard quick-add. */
   variant?: "default" | "compact";
   returnTo?: string | null;
 }) {
   const action = mode === "edit" ? updateEntry : createEntry;
   const [state, formAction, pending] = useActionState<EntryActionState, FormData>(action, {});
 
-  const [txType, setTxType] = useState<"income" | "expense">(
-    initial?.transaction_type ?? "expense",
-  );
+  const initialType = initial?.transaction_type ?? "expense";
+  const [txType, setTxType] = useState<"income" | "expense">(initialType);
+  const groupId = useId();
 
   const defaultDate = new Date();
   defaultDate.setMinutes(defaultDate.getMinutes() - defaultDate.getTimezoneOffset());
@@ -71,39 +69,61 @@ export function EntryForm({
       {mode === "edit" && initial ? (
         <input type="hidden" name="entry_id" value={initial.id} />
       ) : null}
-      <input type="hidden" name="transaction_type" value={txType} />
       {mode === "create" && returnTo ? (
         <input type="hidden" name="return_to" value={returnTo} />
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2 sm:col-span-2">
-          <Label>Type</Label>
-          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-gh-border-subtle bg-gh-surface-inset/50 p-1">
-            {(["expense", "income"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTxType(t)}
-                className={cn(
-                  "min-h-11 rounded-xl text-sm font-medium transition-[background-color,color,box-shadow] duration-150 motion-reduce:transition-none",
-                  txType === t
-                    ? "bg-gh-accent-muted text-gh-accent shadow-[inset_0_0_0_1px_rgb(106_158_148/0.35)]"
-                    : "text-gh-text-secondary hover:bg-gh-surface-elevated hover:text-gh-text",
-                )}
-              >
-                {t === "expense" ? "Expense" : "Income"}
-              </button>
-            ))}
+        <fieldset className="space-y-2 sm:col-span-2">
+          <legend className="mb-2 text-xs font-medium uppercase tracking-wide text-gh-text-muted">
+            Typ
+          </legend>
+          <div
+            role="radiogroup"
+            aria-label="Eintragstyp"
+            className="grid grid-cols-2 gap-2 rounded-2xl border border-gh-border-subtle bg-gh-surface-inset/50 p-1"
+          >
+            {(
+              [
+                { value: "expense", label: "Ausgabe" },
+                { value: "income", label: "Einnahme" },
+              ] as const
+            ).map((opt) => {
+              const active = txType === opt.value;
+              const radioId = `${groupId}-${opt.value}`;
+              return (
+                <label
+                  key={opt.value}
+                  htmlFor={radioId}
+                  className={cn(
+                    "relative flex min-h-11 cursor-pointer items-center justify-center rounded-xl text-sm font-medium transition-[background-color,color,box-shadow] duration-150 motion-reduce:transition-none",
+                    active
+                      ? "bg-gh-accent-muted text-gh-accent shadow-[inset_0_0_0_1px_rgb(106_158_148/0.35)]"
+                      : "text-gh-text-secondary hover:bg-gh-surface-elevated hover:text-gh-text",
+                  )}
+                >
+                  <input
+                    id={radioId}
+                    type="radio"
+                    name="transaction_type"
+                    value={opt.value}
+                    checked={active}
+                    onChange={() => setTxType(opt.value)}
+                    className="sr-only"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              );
+            })}
           </div>
-        </div>
+        </fieldset>
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (EUR)</Label>
+          <Label htmlFor="amount">Betrag (EUR)</Label>
           <Input
             id="amount"
             name="amount"
             inputMode="decimal"
-            placeholder="0.00"
+            placeholder="0,00"
             defaultValue={initial?.amount}
             className="min-h-11 text-lg tabular-nums"
             aria-invalid={!!fieldErr(state, "amount")}
@@ -113,7 +133,7 @@ export function EntryForm({
           ) : null}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="occurred_at">When</Label>
+          <Label htmlFor="occurred_at">Datum &amp; Uhrzeit</Label>
           <Input
             id="occurred_at"
             name="occurred_at"
@@ -128,11 +148,11 @@ export function EntryForm({
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="title">Title</Label>
+          <Label htmlFor="title">Bezeichnung</Label>
           <Input
             id="title"
             name="title"
-            placeholder="Short label"
+            placeholder="Kurzer Titel"
             defaultValue={initial?.title}
             required
             className="min-h-11"
@@ -143,17 +163,17 @@ export function EntryForm({
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="category_id">Category</Label>
+          <Label htmlFor="category_id">Kategorie</Label>
           <select
             id="category_id"
             name="category_id"
             required
-            defaultValue={initial?.category_id}
+            defaultValue={initial?.category_id ?? ""}
             className={selectClass}
             aria-invalid={!!fieldErr(state, "category_id")}
           >
             <option value="" disabled>
-              Select a category
+              Kategorie auswählen
             </option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -173,10 +193,10 @@ export function EntryForm({
             defaultValue={defaultBucket === null ? "none" : defaultBucket}
             className={selectClass}
           >
-            <option value="none">No bucket</option>
+            <option value="none">Kein Bucket</option>
             {buckets.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.name} {b.type === "shared" ? "(shared)" : ""}
+                {b.name} {b.type === "shared" ? "(gemeinsam)" : ""}
               </option>
             ))}
           </select>
@@ -186,11 +206,11 @@ export function EntryForm({
         </div>
         {variant === "default" ? (
           <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="notes">Notes (optional)</Label>
+            <Label htmlFor="notes">Notizen (optional)</Label>
             <Textarea
               id="notes"
               name="notes"
-              placeholder="Optional context"
+              placeholder="Zusätzlicher Kontext"
               defaultValue={initial?.notes ?? ""}
             />
           </div>
@@ -198,7 +218,7 @@ export function EntryForm({
       </div>
       {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" className="min-h-12 w-full rounded-2xl sm:w-auto" disabled={pending}>
-        {pending ? "Saving…" : mode === "edit" ? "Save changes" : "Save entry"}
+        {pending ? "Speichern…" : mode === "edit" ? "Änderungen speichern" : "Eintrag speichern"}
       </Button>
     </form>
   );

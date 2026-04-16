@@ -15,23 +15,27 @@ export default async function HomePage() {
     <main className="mx-auto flex min-h-full max-w-lg flex-1 flex-col justify-center px-6 py-16">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gh-text-muted">GripHook</p>
       <h1 className="mt-4 text-4xl font-semibold tracking-tight text-gh-text">
-        Your month, in one calm view.
+        Dein Monat, in einer ruhigen Ansicht.
       </h1>
       <p className="mt-4 text-base leading-relaxed text-gh-text-secondary">
-        Track income and expenses with buckets, optional shared household pots, and lightweight
-        fairness signals — without running a spreadsheet or a second job as an accountant.
+        Einnahmen und Ausgaben mit Buckets verfolgen — optional mit gemeinsamen Haushaltstöpfen und
+        dezenten Fairness-Signalen. Ohne Tabellenkalkulation, ohne Buchhalter-Zweitjob.
       </p>
       <div className="mt-10 flex flex-col gap-3 sm:flex-row">
         <LinkButton href="/signup" className="h-12 w-full px-5 text-base sm:w-auto">
-          Create account
+          Konto erstellen
         </LinkButton>
-        <LinkButton href="/login" variant="secondary" className="h-12 w-full px-5 text-base sm:w-auto">
-          Sign in
+        <LinkButton
+          href="/login"
+          variant="secondary"
+          className="h-12 w-full px-5 text-base sm:w-auto"
+        >
+          Anmelden
         </LinkButton>
       </div>
       <p className="mt-10 text-xs text-gh-text-muted">
-        Install on iPhone: Share → Add to Home Screen after signing in. Offline mode is not enabled
-        yet; the shell is PWA-ready.
+        Auf iPhone installieren: Nach dem Anmelden „Teilen → Zum Home-Bildschirm“. Offline-Modus ist
+        noch nicht aktiviert, aber die Shell ist PWA-ready.
       </p>
     </main>
   );

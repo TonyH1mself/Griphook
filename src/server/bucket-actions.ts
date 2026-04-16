@@ -11,9 +11,12 @@ export type BucketActionState = { error?: string; fieldErrors?: Record<string, s
 
 function friendlyBucketError(error: { message?: string; code?: string }): string {
   if (error.code === "42501" || /permission denied|rls/i.test(error.message ?? "")) {
-    return "You do not have permission to change this bucket.";
+    return "Du hast keine Berechtigung, diesen Bucket zu ändern.";
   }
-  return error.message ?? "Something went wrong.";
+  if (error.code === "23505") {
+    return "Dieser Code ist bereits vergeben. Bitte erneut versuchen.";
+  }
+  return "Etwas ist schiefgelaufen. Bitte erneut versuchen.";
 }
 
 async function allocateJoinCode(
@@ -29,9 +32,9 @@ async function allocateJoinCode(
       .maybeSingle();
     if (!data) return code;
     if (excludeBucketId && data.id === excludeBucketId) continue;
-    /* another bucket uses this code */ continue;
+    continue;
   }
-  throw new Error("Could not allocate join code");
+  throw new Error("Es konnte kein freier Beitrittscode erzeugt werden.");
 }
 
 export async function createBucket(
@@ -42,7 +45,7 @@ export async function createBucket(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Du bist nicht angemeldet." };
 
   const parsed = parseForm(bucketCreateSchema, {
     name: String(formData.get("name") ?? ""),
@@ -62,7 +65,11 @@ export async function createBucket(
 
   let join_code: string | null = null;
   if (type === "shared") {
-    join_code = await allocateJoinCode(supabase);
+    try {
+      join_code = await allocateJoinCode(supabase);
+    } catch {
+      return { error: "Es konnte kein freier Beitrittscode erzeugt werden. Bitte erneut versuchen." };
+    }
   }
 
   const { data: bucket, error } = await supabase
@@ -80,7 +87,9 @@ export async function createBucket(
     .select("id")
     .single();
 
-  if (error || !bucket) return { error: error ? friendlyBucketError(error) : "Could not create bucket." };
+  if (error || !bucket) {
+    return { error: error ? friendlyBucketError(error) : "Bucket konnte nicht erstellt werden." };
+  }
 
   if (type === "shared") {
     const { error: memberError } = await supabase.from("bucket_members").insert({
@@ -89,10 +98,15 @@ export async function createBucket(
       role: "admin",
       share_percent: 100,
     });
-    if (memberError) return { error: friendlyBucketError(memberError) };
+    if (memberError) {
+      await supabase.from("buckets").delete().eq("id", bucket.id);
+      return { error: friendlyBucketError(memberError) };
+    }
   }
 
   revalidatePath("/app/buckets");
+  revalidatePath("/app/shared");
+  revalidatePath("/app");
   redirect(`/app/buckets/${bucket.id}`);
 }
 
@@ -105,7 +119,7 @@ export async function updateBucketMeta(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Du bist nicht angemeldet." };
 
   const parsed = parseForm(bucketMetaSchema, {
     name: String(formData.get("name") ?? ""),
@@ -138,7 +152,7 @@ export async function updateBucketBudget(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Du bist nicht angemeldet." };
 
   const parsed = parseForm(bucketBudgetSchema, {
     has_budget: formData.get("has_budget") === "on",
@@ -174,7 +188,7 @@ export async function archiveBucket(bucketId: string): Promise<{ error?: string;
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Du bist nicht angemeldet." };
 
   const { error } = await supabase.from("buckets").update({ is_archived: true }).eq("id", bucketId);
   if (error) return { error: friendlyBucketError(error) };
@@ -182,6 +196,7 @@ export async function archiveBucket(bucketId: string): Promise<{ error?: string;
   revalidatePath("/app/buckets");
   revalidatePath("/app");
   revalidatePath(`/app/buckets/${bucketId}`);
+  revalidatePath("/app/shared");
   return { ok: true };
 }
 
@@ -190,7 +205,7 @@ export async function unarchiveBucket(bucketId: string): Promise<{ error?: strin
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Du bist nicht angemeldet." };
 
   const { error } = await supabase.from("buckets").update({ is_archived: false }).eq("id", bucketId);
   if (error) return { error: friendlyBucketError(error) };
@@ -207,14 +222,16 @@ export async function regenerateJoinCode(bucketId: string) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Du bist nicht angemeldet." };
 
   const { data: bucket } = await supabase
     .from("buckets")
     .select("id,type")
     .eq("id", bucketId)
     .single();
-  if (!bucket || bucket.type !== "shared") return { error: "Not a shared bucket." };
+  if (!bucket || bucket.type !== "shared") {
+    return { error: "Dieser Bucket ist kein gemeinsamer Bucket." };
+  }
 
   const { data: admin } = await supabase
     .from("bucket_members")
@@ -223,9 +240,16 @@ export async function regenerateJoinCode(bucketId: string) {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (admin?.role !== "admin") return { error: "Only admins can regenerate the join code." };
+  if (admin?.role !== "admin") {
+    return { error: "Nur Admins dürfen den Beitrittscode erneuern." };
+  }
 
-  const nextCode = await allocateJoinCode(supabase, bucketId);
+  let nextCode: string;
+  try {
+    nextCode = await allocateJoinCode(supabase, bucketId);
+  } catch {
+    return { error: "Es konnte kein freier Beitrittscode erzeugt werden. Bitte erneut versuchen." };
+  }
   const { error } = await supabase
     .from("buckets")
     .update({ join_code: nextCode })

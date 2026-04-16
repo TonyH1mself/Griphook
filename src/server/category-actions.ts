@@ -10,15 +10,15 @@ export type CategoryActionState = { error?: string; fieldErrors?: Record<string,
 
 function friendlyCategoryError(error: { message?: string; code?: string }): string {
   if (error.code === "42501" || /permission denied|rls/i.test(error.message ?? "")) {
-    return "You do not have permission to change categories.";
+    return "Du hast keine Berechtigung, Kategorien zu ändern.";
   }
   if (error.code === "23505") {
-    return "A category with that name already exists. Try a different name.";
+    return "Eine Kategorie mit diesem Namen existiert bereits. Bitte einen anderen Namen wählen.";
   }
   if (/is_archived|column/i.test(error.message ?? "")) {
-    return "Database is missing the latest migration. Run supabase/migrations/20260415210000_categories_is_archived.sql (see docs/setup.md).";
+    return "Der Datenbank fehlt die neueste Migration. Bitte supabase/migrations/20260415210000_categories_is_archived.sql anwenden (siehe docs/setup.md).";
   }
-  return "Something went wrong. Please try again.";
+  return "Etwas ist schiefgelaufen. Bitte erneut versuchen.";
 }
 
 export async function createUserCategory(
@@ -29,7 +29,7 @@ export async function createUserCategory(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Nicht angemeldet." };
 
   const parsed = parseForm(categoryCreateSchema, {
     name: String(formData.get("name") ?? ""),
@@ -62,10 +62,10 @@ export async function updateUserCategory(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Nicht angemeldet." };
 
   const categoryId = String(formData.get("category_id") ?? "").trim();
-  if (!categoryId) return { error: "Missing category." };
+  if (!categoryId) return { error: "Kategorie fehlt." };
 
   const parsed = parseForm(categoryUpdateSchema, {
     name: String(formData.get("name") ?? ""),
@@ -88,7 +88,7 @@ export async function updateUserCategory(
     .maybeSingle();
 
   if (error) return { error: friendlyCategoryError(error) };
-  if (!updated) return { error: "Category not found or cannot be edited." };
+  if (!updated) return { error: "Kategorie nicht gefunden oder nicht bearbeitbar." };
 
   revalidatePath("/app/categories");
   revalidatePath("/app");
@@ -103,7 +103,7 @@ export async function setCategoryArchived(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Not signed in." };
+  if (!user) return { error: "Nicht angemeldet." };
 
   const { data: updated, error } = await supabase
     .from("categories")
@@ -115,7 +115,7 @@ export async function setCategoryArchived(
     .maybeSingle();
 
   if (error) return { error: friendlyCategoryError(error) };
-  if (!updated) return { error: "Category not found." };
+  if (!updated) return { error: "Kategorie nicht gefunden." };
 
   revalidatePath("/app/categories");
   revalidatePath("/app");

@@ -49,22 +49,22 @@ export function SignupForm() {
   if (needsEmailConfirmation) {
     return (
       <div className="space-y-4 rounded-2xl border border-gh-border-subtle bg-gh-surface/90 p-5 shadow-gh-panel backdrop-blur-sm">
-        <p className="text-sm font-medium text-gh-text">Check your email</p>
+        <p className="text-sm font-medium text-gh-text">Prüfe deine E-Mails</p>
         <p className="text-sm leading-relaxed text-gh-text-secondary">
-          We sent a confirmation link to{" "}
-          <span className="font-medium text-gh-text">{email}</span>. After you confirm, you will be
-          signed in and can finish your profile.
+          Wir haben einen Bestätigungslink an{" "}
+          <span className="font-medium text-gh-text">{email}</span> gesendet. Nach Bestätigung bist
+          du angemeldet und kannst dein Profil fertig einrichten.
         </p>
         <p className="text-xs text-gh-text-muted">
-          If the link opens in the wrong environment, set{" "}
+          Öffnet der Link die falsche Umgebung, setze{" "}
           <code className="rounded bg-gh-surface-inset px-1 text-gh-text-secondary ring-1 ring-gh-border-subtle">
             NEXT_PUBLIC_APP_URL
           </code>{" "}
-          to your app URL (e.g. on Vercel) and add{" "}
+          auf deine App-URL (z. B. auf Vercel) und ergänze{" "}
           <code className="rounded bg-gh-surface-inset px-1 text-gh-text-secondary ring-1 ring-gh-border-subtle">
             {getSiteUrl()}/auth/callback
           </code>{" "}
-          under Supabase Auth redirect URLs.
+          in den Supabase-Auth-Redirect-URLs.
         </p>
         <Button
           type="button"
@@ -72,14 +72,14 @@ export function SignupForm() {
           className="w-full rounded-2xl"
           onClick={() => setNeedsEmailConfirmation(false)}
         >
-          Use a different email
+          Andere E-Mail verwenden
         </Button>
         <p className="text-center text-sm text-gh-text-muted">
           <Link
             href="/login"
             className="font-medium text-gh-accent underline decoration-gh-accent/40 underline-offset-2 transition-colors hover:text-gh-accent-hover"
           >
-            Back to sign in
+            Zurück zur Anmeldung
           </Link>
         </p>
       </div>
@@ -89,7 +89,7 @@ export function SignupForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">E-Mail</Label>
         <Input
           id="email"
           name="email"
@@ -102,7 +102,7 @@ export function SignupForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Passwort</Label>
         <Input
           id="password"
           name="password"
@@ -114,19 +114,19 @@ export function SignupForm() {
           onChange={(e) => setPassword(e.target.value)}
           className="min-h-11"
         />
-        <p className="text-xs text-gh-text-muted">At least 8 characters.</p>
+        <p className="text-xs text-gh-text-muted">Mindestens 8 Zeichen.</p>
       </div>
       {error ? <p className="text-sm text-gh-error-text">{error}</p> : null}
       <Button type="submit" className="min-h-11 w-full rounded-2xl" disabled={pending}>
-        {pending ? "Creating account…" : "Create account"}
+        {pending ? "Erstelle Konto…" : "Konto erstellen"}
       </Button>
       <p className="text-center text-sm text-gh-text-muted">
-        Already have an account?{" "}
+        Schon ein Konto?{" "}
         <Link
           href="/login"
           className="font-medium text-gh-accent underline decoration-gh-accent/40 underline-offset-2 transition-colors hover:text-gh-accent-hover"
         >
-          Sign in
+          Anmelden
         </Link>
       </p>
     </form>

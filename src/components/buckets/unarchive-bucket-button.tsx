@@ -24,7 +24,7 @@ export function UnarchiveBucketButton({
         disabled={pending}
         onClick={() => {
           setError(null);
-          if (!window.confirm(`Restore “${bucketName}” to your active buckets?`)) return;
+          if (!window.confirm(`„${bucketName}“ wiederherstellen?`)) return;
           startTransition(async () => {
             const r = await unarchiveBucket(bucketId);
             if (r.error) {
@@ -35,7 +35,7 @@ export function UnarchiveBucketButton({
           });
         }}
       >
-        {pending ? "Restoring…" : "Restore bucket"}
+        {pending ? "Stelle wieder her…" : "Bucket wiederherstellen"}
       </Button>
       {error ? <p className="text-xs text-gh-error-text">{error}</p> : null}
     </div>

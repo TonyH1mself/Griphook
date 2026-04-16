@@ -9,21 +9,26 @@ import { primaryNav } from "./nav-items";
 
 const TRIGGER_SIZE = 56;
 /**
- * Arc geometry — right-biased fan.
- * Angles use math convention: 0° = right, 90° = straight up, 180° = left.
- * Sweep runs from 22° (low-right, near trigger) up to 128° (upper, slightly
- * left of vertical). The apex of the arc sits in the upper half of the screen
- * with an intentional right-hand lean, matching natural right-thumb travel
- * from a bottom-center rest position.
+ * Arc-Geometrie — rechtsbetonter Fächer.
+ * Winkel in mathematischer Konvention: 0° = rechts, 90° = senkrecht nach oben,
+ * 180° = links. Der Sweep läuft von 25° (knapp oberhalb horizontal rechts) bis
+ * 140° (links-oben über dem Trigger). Apex liegt in der rechten oberen
+ * Bildschirmhälfte, passt zur natürlichen Rechts-Daumen-Bewegung aus einer
+ * bottom-center-Rest-Position.
+ *
+ * Mit 5 Items ergibt das 115° Sweep / 4 Lücken = ≈ 29° pro Schritt. Kombiniert
+ * mit einem moderat größeren Radius und schmaleren Chips stellt das deutlich
+ * mehr Luft zwischen den Kacheln sicher und hält die 320px-Safety.
  */
-const ARC_START_DEG = 22;
-const ARC_END_DEG = 128;
+const ARC_START_DEG = 25;
+const ARC_END_DEG = 140;
 /**
- * Radius scales with viewport so the fan breathes on larger phones but never
- * overshoots a 320px screen. 44vw on a 320px viewport = 141px (clamped to
- * 144px floor); on a 420px viewport = 185px (clamped to 172px ceiling).
+ * Radius skaliert viewport-responsiv. `46vw` auf 320px = 147px (clamped auf
+ * 152px Floor); auf 420px = 193px (clamped auf 184px Ceiling). Die Chip-
+ * Breite unten ist auf 3.5rem (56px) reduziert, damit Chips auf der Bogen-
+ * Linie sicher voneinander getrennt bleiben.
  */
-const ARC_RADIUS = "clamp(144px, 44vw, 172px)";
+const ARC_RADIUS = "clamp(152px, 46vw, 184px)";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -126,7 +131,7 @@ function ArcNavInner() {
         }}
       >
         <div className="pointer-events-auto relative h-full w-full">
-          <nav aria-label="Primary" id="primary-arc" className="absolute inset-0">
+          <nav aria-label="Hauptnavigation" id="primary-arc" className="absolute inset-0">
             <ul className="contents">
               {items.map((item, i) => {
                 const Icon = item.icon;
@@ -162,7 +167,7 @@ function ArcNavInner() {
                       }}
                       style={itemStyle}
                       className={cn(
-                        "group absolute flex h-[4.25rem] w-16 flex-col items-center justify-center gap-1 rounded-2xl border px-1.5 text-[10px] font-semibold leading-tight tracking-tight outline-none",
+                        "group absolute flex h-[4.25rem] w-14 flex-col items-center justify-center gap-1 rounded-2xl border px-1 text-[10px] font-semibold leading-tight tracking-tight outline-none",
                         "shadow-[0_10px_30px_-10px_rgb(0_0_0/0.55),0_1px_0_rgb(255_255_255/0.05)_inset]",
                         "transition-[transform,opacity,background-color,color,border-color] duration-220 ease-[cubic-bezier(0.22,1,0.36,1)]",
                         "motion-reduce:transition-opacity motion-reduce:duration-150",
@@ -203,7 +208,7 @@ function ArcNavInner() {
             aria-expanded={open}
             aria-haspopup="menu"
             aria-controls="primary-arc"
-            aria-label={open ? "Close primary navigation" : "Open primary navigation"}
+            aria-label={open ? "Hauptnavigation schließen" : "Hauptnavigation öffnen"}
             className={cn(
               "relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl border outline-none",
               "shadow-[0_14px_34px_-10px_rgb(0_0_0/0.7),0_1px_0_rgb(255_255_255/0.12)_inset]",

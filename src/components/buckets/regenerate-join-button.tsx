@@ -28,13 +28,13 @@ export function RegenerateJoinButton({ bucketId }: { bucketId: string }) {
               return;
             }
             if (res && "join_code" in res && res.join_code) {
-              setMessage(`New code: ${res.join_code}`);
+              setMessage(`Neuer Code: ${res.join_code}`);
             }
             router.refresh();
           });
         }}
       >
-        {pending ? "Regenerating…" : "Regenerate join code"}
+        {pending ? "Erzeuge neu…" : "Beitrittscode neu erzeugen"}
       </Button>
       {message ? <p className="text-xs text-gh-text-muted">{message}</p> : null}
       {error ? <p className="text-xs text-gh-error-text">{error}</p> : null}

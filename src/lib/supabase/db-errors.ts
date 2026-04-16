@@ -16,7 +16,7 @@ export function missingProfilesTableMessage(error: {
   hint?: string;
 }): string | null {
   const hint =
-    "Database not set up: the profiles table is not available in Supabase. Open the SQL Editor for the same project as NEXT_PUBLIC_SUPABASE_URL on Vercel and run supabase/migrations/*.sql (see docs/setup.md).";
+    "Datenbank nicht eingerichtet: Die Tabelle „profiles“ ist in Supabase nicht verfügbar. Bitte in der SQL-Konsole desselben Projekts (entsprechend NEXT_PUBLIC_SUPABASE_URL) die Migrationen unter supabase/migrations/*.sql ausführen (siehe docs/setup.md).";
   const blob = postgresErrorBlob(error);
   if (error.code === "PGRST205") return hint;
   if (/schema cache/i.test(blob) && /profiles/i.test(blob)) return hint;

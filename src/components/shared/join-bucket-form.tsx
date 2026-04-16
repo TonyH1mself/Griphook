@@ -26,7 +26,7 @@ export function JoinBucketForm() {
   return (
     <form action={action} className="space-y-4 scroll-mt-24">
       <div className="space-y-2">
-        <Label htmlFor="code">6-digit code</Label>
+        <Label htmlFor="code">6-stelliger Code</Label>
         <Input
           id="code"
           name="code"
@@ -44,7 +44,7 @@ export function JoinBucketForm() {
       </div>
       {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" className="min-h-12 w-full rounded-2xl" disabled={pending}>
-        {pending ? "Joining…" : "Join bucket"}
+        {pending ? "Trete bei…" : "Beitreten"}
       </Button>
     </form>
   );

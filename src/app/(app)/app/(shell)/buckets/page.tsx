@@ -75,14 +75,14 @@ export default async function BucketsPage({
   }
 
   const statusTabs: { key: StatusFilter; label: string }[] = [
-    { key: "active", label: "Active" },
-    { key: "archived", label: "Archived" },
-    { key: "all", label: "All" },
+    { key: "active", label: "Aktiv" },
+    { key: "archived", label: "Archiviert" },
+    { key: "all", label: "Alle" },
   ];
   const typeTabs: { key: TypeFilter; label: string }[] = [
-    { key: "all", label: "All types" },
-    { key: "private", label: "Private" },
-    { key: "shared", label: "Shared" },
+    { key: "all", label: "Alle Typen" },
+    { key: "private", label: "Privat" },
+    { key: "shared", label: "Gemeinsam" },
   ];
 
   return (
@@ -91,10 +91,15 @@ export default async function BucketsPage({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Buckets</h1>
           <p className="mt-1 text-sm text-gh-text-muted">
-            Private or shared pots — with or without a budget cap.
+            Private oder gemeinsame Töpfe — mit oder ohne Monatsbudget.
           </p>
         </div>
-        <LinkButton href="/app/buckets/new">New bucket</LinkButton>
+        <div className="flex flex-wrap gap-2">
+          <LinkButton href="/app/buckets/new" variant="secondary">
+            Privater Bucket
+          </LinkButton>
+          <LinkButton href="/app/buckets/new?type=shared">Gemeinsamer Bucket</LinkButton>
+        </div>
       </header>
 
       <div className="flex flex-col gap-3">
@@ -113,7 +118,7 @@ export default async function BucketsPage({
             </Link>
           ))}
         </div>
-        <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">Type</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">Typ</p>
         <div className="flex flex-wrap gap-2">
           {typeTabs.map((t) => (
             <Link
@@ -132,15 +137,20 @@ export default async function BucketsPage({
 
       {!buckets?.length ? (
         <EmptyState
-          title="No buckets match"
+          title={status === "archived" ? "Keine archivierten Buckets" : "Noch keine Buckets"}
           description={
             status === "archived"
-              ? "Nothing archived yet — or try another filter."
-              : "Create a bucket to group spending and optional monthly caps."
+              ? "Nichts archiviert — oder den Filter wechseln."
+              : "Lege einen Bucket an, um Ausgaben zu gruppieren und optional ein Monatsbudget zu setzen."
           }
           action={
             status !== "archived" ? (
-              <LinkButton href="/app/buckets/new">Create bucket</LinkButton>
+              <div className="flex flex-wrap justify-center gap-2">
+                <LinkButton href="/app/buckets/new" variant="secondary">
+                  Privat
+                </LinkButton>
+                <LinkButton href="/app/buckets/new?type=shared">Gemeinsam</LinkButton>
+              </div>
             ) : null
           }
         />
@@ -179,38 +189,38 @@ export default async function BucketsPage({
                               : "bg-gh-surface-inset text-gh-text-secondary ring-1 ring-gh-border-subtle",
                           )}
                         >
-                          {b.type === "shared" ? "Shared" : "Private"}
+                          {b.type === "shared" ? "Gemeinsam" : "Privat"}
                         </span>
                         {b.is_archived ? (
                           <span className="rounded-full bg-gh-warning-soft px-2 py-0.5 font-medium text-gh-warning ring-1 ring-gh-warning/25">
-                            Archived
+                            Archiviert
                           </span>
                         ) : null}
                         {b.has_budget && b.budget_period === "monthly" ? (
-                          <span>Monthly budget</span>
+                          <span>Monatsbudget</span>
                         ) : b.has_budget ? (
                           <span>Budget</span>
                         ) : (
-                          <span>No budget cap</span>
+                          <span>Kein Budget</span>
                         )}
                       </p>
                     </div>
                   </div>
                   <div className="mt-4 space-y-2 text-sm">
                     <div className="flex justify-between tabular-nums text-gh-text-secondary">
-                      <span>This month (expenses)</span>
+                      <span>Diesen Monat (Ausgaben)</span>
                       <span className="font-medium text-gh-text">{formatEur(spent)}</span>
                     </div>
                     {cap != null && Number.isFinite(cap) ? (
                       <>
                         <div className="flex justify-between text-xs tabular-nums text-gh-text-muted">
-                          <span>of {formatEur(cap)}</span>
+                          <span>von {formatEur(cap)}</span>
                           {overBy != null ? (
                             <span className="font-medium text-gh-danger">
-                              Over by {formatEur(overBy)}
+                              {formatEur(overBy)} über Budget
                             </span>
                           ) : remaining != null ? (
-                            <span>{formatEur(remaining)} left</span>
+                            <span>{formatEur(remaining)} übrig</span>
                           ) : null}
                         </div>
                         <ProgressBar
@@ -222,7 +232,7 @@ export default async function BucketsPage({
                       </>
                     ) : (
                       <p className="text-xs text-gh-text-muted">
-                        No monthly cap — spending still tracked.
+                        Ausgaben werden erfasst, ohne Budget-Grenze.
                       </p>
                     )}
                   </div>

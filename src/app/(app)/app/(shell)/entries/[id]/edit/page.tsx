@@ -38,9 +38,11 @@ export default async function EditEntryPage({ params }: { params: Promise<{ id: 
           href="/app/entries"
           className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
         >
-          ← Entries
+          ← Einträge
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">Edit entry</h1>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">
+          Eintrag bearbeiten
+        </h1>
       </div>
       <EntryForm
         categories={categories}

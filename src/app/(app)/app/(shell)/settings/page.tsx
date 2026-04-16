@@ -16,52 +16,56 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Settings</h1>
-        <p className="mt-1 text-sm text-gh-text-muted">Profile, session, and future preferences.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Einstellungen</h1>
+        <p className="mt-1 text-sm text-gh-text-muted">
+          Profil, Sitzung und weitere Einstellungen.
+        </p>
       </header>
 
       <Card>
-        <CardTitle>Profile</CardTitle>
-        <CardDescription>Synced from your GripHook profile row.</CardDescription>
+        <CardTitle>Profil</CardTitle>
+        <CardDescription>Aus deinem GripHook-Profil übernommen.</CardDescription>
         <dl className="mt-4 space-y-3 text-sm">
           <div>
-            <dt className="text-xs uppercase tracking-wide text-gh-text-muted">Email</dt>
+            <dt className="text-xs uppercase tracking-wide text-gh-text-muted">E-Mail</dt>
             <dd className="mt-1 text-gh-text">{user?.email ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-gh-text-muted">Username</dt>
+            <dt className="text-xs uppercase tracking-wide text-gh-text-muted">Benutzername</dt>
             <dd className="mt-1 text-gh-text">{profile?.username ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-gh-text-muted">Display name</dt>
+            <dt className="text-xs uppercase tracking-wide text-gh-text-muted">Anzeigename</dt>
             <dd className="mt-1 text-gh-text">{profile?.display_name ?? "—"}</dd>
           </div>
         </dl>
       </Card>
 
       <Card>
-        <CardTitle>Session</CardTitle>
-        <CardDescription>Sign out on this device.</CardDescription>
+        <CardTitle>Sitzung</CardTitle>
+        <CardDescription>Auf diesem Gerät abmelden.</CardDescription>
         <form action={signOut} className="mt-4">
           <Button type="submit" variant="secondary" className="rounded-2xl">
-            Log out
+            Abmelden
           </Button>
         </form>
       </Card>
 
       <Card>
-        <CardTitle>Categories</CardTitle>
+        <CardTitle>Kategorien</CardTitle>
         <CardDescription>
-          Create and archive your own labels for entries and recurring items.
+          Eigene Kategorien für Einträge und wiederkehrende Posten anlegen oder archivieren.
         </CardDescription>
         <LinkButton href="/app/categories" className="mt-4 min-h-11 rounded-2xl">
-          Manage categories
+          Kategorien verwalten
         </LinkButton>
       </Card>
 
       <Card>
-        <CardTitle>Coming soon</CardTitle>
-        <CardDescription>Currency defaults, notifications, and more preferences.</CardDescription>
+        <CardTitle>Kommt bald</CardTitle>
+        <CardDescription>
+          Währungsvorgaben, Benachrichtigungen und weitere Einstellungen.
+        </CardDescription>
       </Card>
     </div>
   );

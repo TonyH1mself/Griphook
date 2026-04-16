@@ -56,31 +56,32 @@ export default async function SharedBucketDetailPage({
           href="/app/shared"
           className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
         >
-          ← Shared
+          ← Geteilt
         </Link>
         {sp.rebalance === "1" ? (
           <p className="mt-4 rounded-2xl border border-gh-warning/30 bg-gh-warning-soft px-4 py-3 text-sm text-gh-warning">
-            You joined this bucket. Ask an admin to rebalance member percentages so they total 100%.
+            Du bist diesem Bucket beigetreten. Bitte eine:n Admin, die Anteile so anzupassen, dass
+            sie zusammen 100 % ergeben.
           </p>
         ) : null}
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">{bucket.name}</h1>
         <p className="mt-1 text-sm text-gh-text-muted">
-          Fairness view · this month · {formatEur(totalExpenses)} shared expenses
+          Fairness · dieser Monat · {formatEur(totalExpenses)} gemeinsame Ausgaben
         </p>
       </div>
 
       <Card>
         <CardTitle>Soll / Ist / Delta</CardTitle>
         <CardDescription>
-          Soll uses each member’s share of total expenses; Ist is what they actually logged as payer
-          this month.
+          Soll basiert auf dem Anteil an den gemeinsamen Ausgaben. Ist ist, was die Person als
+          Zahler:in diesen Monat erfasst hat.
         </CardDescription>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[520px] text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-gh-text-muted">
               <tr>
-                <th className="py-2 pr-4 font-medium">Member</th>
-                <th className="py-2 pr-4 font-medium">Share</th>
+                <th className="py-2 pr-4 font-medium">Mitglied</th>
+                <th className="py-2 pr-4 font-medium">Anteil</th>
                 <th className="py-2 pr-4 font-medium">Soll</th>
                 <th className="py-2 pr-4 font-medium">Ist</th>
                 <th className="py-2 font-medium">Δ</th>
@@ -94,7 +95,7 @@ export default async function SharedBucketDetailPage({
                   <tr key={row.userId}>
                     <td className="py-3 pr-4 font-medium text-gh-text">{label}</td>
                     <td className="py-3 pr-4 tabular-nums text-gh-text-secondary">
-                      {row.sharePercent.toFixed(1)}%
+                      {row.sharePercent.toFixed(1)} %
                     </td>
                     <td className="py-3 pr-4 tabular-nums text-gh-text-secondary">
                       {formatEur(row.shareAmount)}

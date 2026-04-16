@@ -12,8 +12,8 @@ export function DeleteEntryButton({ entryId, title }: { entryId: string; title: 
 
   return (
     <div className="space-y-2 border-t border-gh-border-subtle pt-6">
-      <p className="text-sm font-medium text-gh-text">Delete entry</p>
-      <p className="text-xs text-gh-text-muted">This cannot be undone.</p>
+      <p className="text-sm font-medium text-gh-text">Eintrag löschen</p>
+      <p className="text-xs text-gh-text-muted">Das kann nicht rückgängig gemacht werden.</p>
       <Button
         type="button"
         variant="ghost"
@@ -21,7 +21,8 @@ export function DeleteEntryButton({ entryId, title }: { entryId: string; title: 
         disabled={pending}
         onClick={() => {
           setError(null);
-          if (!window.confirm(`Delete “${title}”? This cannot be undone.`)) return;
+          if (!window.confirm(`„${title}“ löschen? Das kann nicht rückgängig gemacht werden.`))
+            return;
           startTransition(async () => {
             const r = await deleteEntry(entryId);
             if (r.error) {
@@ -33,7 +34,7 @@ export function DeleteEntryButton({ entryId, title }: { entryId: string; title: 
           });
         }}
       >
-        {pending ? "Deleting…" : "Delete entry"}
+        {pending ? "Lösche…" : "Eintrag löschen"}
       </Button>
       {error ? <p className="text-xs text-gh-error-text">{error}</p> : null}
     </div>

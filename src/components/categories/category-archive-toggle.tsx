@@ -35,7 +35,7 @@ export function CategoryArchiveToggle({
           });
         }}
       >
-        {pending ? "…" : isArchived ? "Restore" : "Archive"}
+        {pending ? "…" : isArchived ? "Wiederherstellen" : "Archivieren"}
       </Button>
       {error ? (
         <p className="text-xs text-gh-error-text">{error}</p>

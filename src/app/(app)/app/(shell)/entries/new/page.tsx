@@ -26,10 +26,10 @@ export default async function NewEntryPage({
           href="/app/entries"
           className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
         >
-          ← Entries
+          ← Einträge
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">New entry</h1>
-        <p className="mt-1 text-sm text-gh-text-muted">Optimized for quick mobile capture.</p>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">Neuer Eintrag</h1>
+        <p className="mt-1 text-sm text-gh-text-muted">Für schnelle Erfassung auf dem Handy.</p>
       </div>
       <EntryForm categories={categories ?? []} buckets={buckets ?? []} returnTo={sp.returnTo} />
     </div>

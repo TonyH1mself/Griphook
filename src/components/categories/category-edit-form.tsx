@@ -29,10 +29,10 @@ export function CategoryEditForm({
         defaultValue={initialName}
         required
         className="min-h-11 min-w-[12rem] flex-1 sm:max-w-xs"
-        aria-label="Category name"
+        aria-label="Kategoriename"
       />
       <Button type="submit" className="min-h-11 shrink-0 rounded-2xl" disabled={pending}>
-        {pending ? "Saving…" : "Save"}
+        {pending ? "Speichere…" : "Speichern"}
       </Button>
       {fe(state, "name") ? (
         <p className="w-full text-xs text-gh-error-text">{fe(state, "name")}</p>
@@ -40,9 +40,7 @@ export function CategoryEditForm({
       {state.error ? (
         <p className="w-full text-xs text-gh-error-text">{state.error}</p>
       ) : null}
-      {state.ok ? (
-        <p className="w-full text-xs text-gh-positive">Saved.</p>
-      ) : null}
+      {state.ok ? <p className="w-full text-xs text-gh-positive">Gespeichert.</p> : null}
     </form>
   );
 }
