@@ -8,11 +8,22 @@ import { IconBrandDots, IconClose } from "./nav-icons";
 import { primaryNav } from "./nav-items";
 
 const TRIGGER_SIZE = 56;
-/** Angle sweep: from straight up (-90°) to right (0°). */
-const ARC_START = -90;
-const ARC_END = 0;
-/** Responsive radius; sized so pills never exceed a typical 360px viewport. */
-const ARC_RADIUS = "clamp(130px, 34vw, 156px)";
+/**
+ * Arc geometry — right-biased fan.
+ * Angles use math convention: 0° = right, 90° = straight up, 180° = left.
+ * Sweep runs from 22° (low-right, near trigger) up to 128° (upper, slightly
+ * left of vertical). The apex of the arc sits in the upper half of the screen
+ * with an intentional right-hand lean, matching natural right-thumb travel
+ * from a bottom-center rest position.
+ */
+const ARC_START_DEG = 22;
+const ARC_END_DEG = 128;
+/**
+ * Radius scales with viewport so the fan breathes on larger phones but never
+ * overshoots a 320px screen. 44vw on a 320px viewport = 141px (clamped to
+ * 144px floor); on a 420px viewport = 185px (clamped to 172px ceiling).
+ */
+const ARC_RADIUS = "clamp(144px, 44vw, 172px)";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -44,7 +55,9 @@ function ArcNavInner() {
   const angles = useMemo(
     () =>
       Array.from({ length: count }, (_, i) =>
-        count === 1 ? (ARC_START + ARC_END) / 2 : ARC_START + (i * (ARC_END - ARC_START)) / (count - 1),
+        count === 1
+          ? (ARC_START_DEG + ARC_END_DEG) / 2
+          : ARC_START_DEG + (i * (ARC_END_DEG - ARC_START_DEG)) / (count - 1),
       ),
     [count],
   );
@@ -96,17 +109,23 @@ function ArcNavInner() {
         onClick={close}
       />
 
+      {/*
+        Anchor container is centered horizontally (`left: 50%`) and offset
+        back by half of the trigger size via negative margin. That keeps the
+        geometric origin exactly on the trigger center without mixing parent
+        transforms with the item transforms below.
+      */}
       <div
         className="pointer-events-none fixed z-50 md:hidden"
         style={{
-          left: "calc(env(safe-area-inset-left) + 1rem)",
+          left: "50%",
+          marginLeft: `-${TRIGGER_SIZE / 2}px`,
           bottom: "calc(env(safe-area-inset-bottom) + 1.25rem)",
+          width: TRIGGER_SIZE,
+          height: TRIGGER_SIZE,
         }}
       >
-        <div
-          className="pointer-events-auto relative"
-          style={{ width: TRIGGER_SIZE, height: TRIGGER_SIZE }}
-        >
+        <div className="pointer-events-auto relative h-full w-full">
           <nav aria-label="Primary" id="primary-arc" className="absolute inset-0">
             <ul className="contents">
               {items.map((item, i) => {
@@ -114,13 +133,14 @@ function ArcNavInner() {
                 const angle = angles[i];
                 const rad = (angle * Math.PI) / 180;
                 const active = item.match(pathname);
+                // Math angle → screen offsets. Y is negated (CSS y grows down).
                 const xFactor = Math.cos(rad).toFixed(4);
-                const yFactor = Math.sin(rad).toFixed(4);
+                const yFactor = (-Math.sin(rad)).toFixed(4);
 
                 const itemStyle: React.CSSProperties = {
                   left: "50%",
                   top: "50%",
-                  transitionDelay: open ? `${i * 24}ms` : `${(count - 1 - i) * 14}ms`,
+                  transitionDelay: open ? `${i * 28}ms` : `${(count - 1 - i) * 16}ms`,
                   transform: open
                     ? `translate(calc(${ARC_RADIUS} * ${xFactor} - 50%), calc(${ARC_RADIUS} * ${yFactor} - 50%)) scale(1)`
                     : `translate(-50%, -50%) scale(0.7)`,
@@ -142,7 +162,7 @@ function ArcNavInner() {
                       }}
                       style={itemStyle}
                       className={cn(
-                        "group absolute flex h-11 min-w-28 items-center gap-2 rounded-2xl border px-3.5 text-xs font-semibold outline-none",
+                        "group absolute flex h-[4.25rem] w-16 flex-col items-center justify-center gap-1 rounded-2xl border px-1.5 text-[10px] font-semibold leading-tight tracking-tight outline-none",
                         "shadow-[0_10px_30px_-10px_rgb(0_0_0/0.55),0_1px_0_rgb(255_255_255/0.05)_inset]",
                         "transition-[transform,opacity,background-color,color,border-color] duration-220 ease-[cubic-bezier(0.22,1,0.36,1)]",
                         "motion-reduce:transition-opacity motion-reduce:duration-150",
@@ -158,7 +178,7 @@ function ArcNavInner() {
                       )}
                     >
                       <Icon
-                        size={18}
+                        size={20}
                         className={cn(
                           "shrink-0",
                           item.emphasis
@@ -168,7 +188,7 @@ function ArcNavInner() {
                               : "text-gh-text-secondary group-hover:text-gh-text",
                         )}
                       />
-                      <span className="truncate">{item.label}</span>
+                      <span className="w-full truncate text-center">{item.label}</span>
                     </Link>
                   </li>
                 );
@@ -222,7 +242,7 @@ function ArcNavInner() {
 
 /**
  * Mobile-only primary navigation rendered as a radial/arc speed-dial
- * anchored to the bottom-left safe area.
+ * anchored to the bottom-center safe area.
  *
  * Route-change → remount via `key={pathname}` — resets open state without
  * triggering set-state-in-effect warnings.
