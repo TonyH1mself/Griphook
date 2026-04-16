@@ -7,7 +7,12 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export type EntryActionState = { error?: string; fieldErrors?: Record<string, string> };
+export type EntryActionState = {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  /** TEMPORARY debug payload piped back to client for log-server ingestion on Vercel. */
+  __debug?: Record<string, unknown>;
+};
 
 function friendlyEntryError(error: { message?: string; code?: string }): string {
   if (error.code === "42501" || /permission denied|rls|row-level/i.test(error.message ?? "")) {
@@ -53,6 +58,24 @@ export async function createEntry(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Du bist nicht angemeldet." };
 
+  // #region agent log
+  const __dbg: Record<string, unknown> = {
+    phase: "server-entry",
+    userIdTail: user.id.slice(-6),
+    transaction_type_raw: String(formData.get("transaction_type") ?? ""),
+    transaction_type_mapped: transactionTypeFromForm(formData),
+    amount_raw: String(formData.get("amount") ?? ""),
+    title_present: (String(formData.get("title") ?? "").trim().length) > 0,
+    category_id_raw: String(formData.get("category_id") ?? ""),
+    category_id_len: String(formData.get("category_id") ?? "").length,
+    bucket_id_raw: String(formData.get("bucket_id") ?? ""),
+    bucket_id_mapped: bucketIdFromForm(formData) ?? null,
+    occurred_at_raw: String(formData.get("occurred_at") ?? ""),
+    formData_keys: Array.from(formData.keys()),
+    at: Date.now(),
+  };
+  // #endregion
+
   const parsed = parseForm(entrySchema, {
     transaction_type: transactionTypeFromForm(formData),
     amount: String(formData.get("amount") ?? ""),
@@ -62,7 +85,11 @@ export async function createEntry(
     bucket_id: bucketIdFromForm(formData),
     occurred_at: String(formData.get("occurred_at") ?? ""),
   });
-  if (!parsed.ok) return { fieldErrors: parsed.fieldErrors };
+  // #region agent log
+  __dbg.parsed_ok = parsed.ok;
+  __dbg.parsed_fieldErrors = parsed.ok ? null : parsed.fieldErrors;
+  // #endregion
+  if (!parsed.ok) return { fieldErrors: parsed.fieldErrors, __debug: __dbg };
 
   const amount = Number.parseFloat(parsed.data.amount.replace(",", "."));
 
@@ -77,6 +104,14 @@ export async function createEntry(
     bucket_id: parsed.data.bucket_id ?? null,
   });
 
+  // #region agent log
+  __dbg.insert_hasError = !!error;
+  __dbg.insert_code = error?.code ?? null;
+  __dbg.insert_message = error?.message ?? null;
+  __dbg.insert_details = (error as { details?: string } | null)?.details ?? null;
+  __dbg.insert_hint = (error as { hint?: string } | null)?.hint ?? null;
+  // #endregion
+
   if (error) {
     console.error("[entry-actions] createEntry insert failed", {
       code: error.code,
@@ -86,7 +121,7 @@ export async function createEntry(
       bucket_id: parsed.data.bucket_id ?? null,
       transaction_type: parsed.data.transaction_type,
     });
-    return { error: friendlyEntryError(error) };
+    return { error: friendlyEntryError(error), __debug: __dbg };
   }
 
   revalidatePath("/app");
