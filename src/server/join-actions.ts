@@ -51,7 +51,6 @@ export async function joinBucketByCode(
   const sum = members?.reduce((s, m) => s + Number(m.share_percent), 0) ?? 0;
   const rebalanceHint = Math.abs(sum - 100) > 0.01;
 
-  revalidatePath("/app/shared");
   revalidatePath("/app/buckets");
   revalidatePath(`/app/buckets/${bucketId}`);
   return { successBucketId: bucketId, rebalanceHint };

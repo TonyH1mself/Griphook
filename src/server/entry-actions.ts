@@ -10,8 +10,8 @@ import { redirect } from "next/navigation";
 export type EntryActionState = { error?: string; fieldErrors?: Record<string, string> };
 
 function friendlyEntryError(error: { message?: string; code?: string }): string {
-  if (error.code === "42501" || /permission denied|rls/i.test(error.message ?? "")) {
-    return "Du darfst diesen Eintrag nicht ändern.";
+  if (error.code === "42501" || /permission denied|rls|row-level/i.test(error.message ?? "")) {
+    return "Du darfst diesen Eintrag hier nicht anlegen oder ändern. Prüfe, ob du Mitglied des gewählten Buckets bist.";
   }
   if (error.code === "23503") {
     return "Diese Kategorie oder dieser Bucket existiert nicht mehr. Bitte andere wählen.";
@@ -19,8 +19,17 @@ function friendlyEntryError(error: { message?: string; code?: string }): string 
   if (error.code === "23514") {
     return "Bitte einen gültigen, nicht-negativen Betrag eingeben.";
   }
+  if (error.code === "23505") {
+    return "Dieser Eintrag existiert bereits. Bitte die Angaben prüfen.";
+  }
+  if (error.code === "42P17" || /infinite recursion/i.test(error.message ?? "")) {
+    return "Datenbank-Policy hat eine Rekursion. Bitte Migration supabase/migrations/20260415200000_bucket_members_rls_fix.sql anwenden.";
+  }
   if (error.code === "42703" || /column .* does not exist/i.test(error.message ?? "")) {
     return "Der Datenbank fehlt eine Spalte. Bitte die neuesten Supabase-Migrationen aus supabase/migrations/*.sql anwenden (siehe docs/setup.md).";
+  }
+  if (error.code === "P0001" && error.message) {
+    return error.message;
   }
   return "Etwas ist schiefgelaufen. Bitte erneut versuchen.";
 }
@@ -68,7 +77,17 @@ export async function createEntry(
     bucket_id: parsed.data.bucket_id ?? null,
   });
 
-  if (error) return { error: friendlyEntryError(error) };
+  if (error) {
+    console.error("[entry-actions] createEntry insert failed", {
+      code: error.code,
+      message: error.message,
+      details: (error as { details?: string }).details,
+      hint: (error as { hint?: string }).hint,
+      bucket_id: parsed.data.bucket_id ?? null,
+      transaction_type: parsed.data.transaction_type,
+    });
+    return { error: friendlyEntryError(error) };
+  }
 
   revalidatePath("/app");
   revalidatePath("/app/entries");
@@ -121,7 +140,18 @@ export async function updateEntry(
     .eq("id", entryId)
     .eq("created_by_user_id", user.id);
 
-  if (error) return { error: friendlyEntryError(error) };
+  if (error) {
+    console.error("[entry-actions] updateEntry failed", {
+      code: error.code,
+      message: error.message,
+      details: (error as { details?: string }).details,
+      hint: (error as { hint?: string }).hint,
+      entry_id: entryId,
+      bucket_id: parsed.data.bucket_id ?? null,
+      transaction_type: parsed.data.transaction_type,
+    });
+    return { error: friendlyEntryError(error) };
+  }
 
   revalidatePath("/app");
   revalidatePath("/app/entries");
@@ -153,7 +183,14 @@ export async function deleteEntry(entryId: string): Promise<{ error?: string; ok
     .eq("id", entryId)
     .eq("created_by_user_id", user.id);
 
-  if (error) return { error: friendlyEntryError(error) };
+  if (error) {
+    console.error("[entry-actions] deleteEntry failed", {
+      code: error.code,
+      message: error.message,
+      entry_id: entryId,
+    });
+    return { error: friendlyEntryError(error) };
+  }
 
   revalidatePath("/app");
   revalidatePath("/app/entries");

@@ -7,7 +7,6 @@ import {
   IconEntries,
   IconRecurring,
   IconSettings,
-  IconShared,
 } from "./nav-icons";
 
 export type NavItem = {
@@ -24,9 +23,10 @@ const startsWith = (prefix: string) => (p: string) =>
   p === prefix || p.startsWith(`${prefix}/`);
 
 /**
- * Primäre Navigation — bewusst auf 5 Einträge begrenzt, damit das mobile
- * Arc-Menü nie überladen wirkt. Auf Desktop zusätzlich durch Settings/Sekundär
- * ergänzt (siehe `tertiaryNav` und Sidebar).
+ * Primäre Navigation — bewusst auf 4 Einträge begrenzt. Shared Buckets sind
+ * nicht mehr ein eigener Menüpunkt, sondern in den Bucket-Bereich integriert
+ * (Beitritt per Code sitzt als sekundärer CTA auf der Bucket-Übersicht).
+ * Auf Desktop zusätzlich durch Settings/Sekundär ergänzt (siehe `tertiaryNav`).
  */
 export const primaryNav: readonly NavItem[] = [
   { href: "/app", label: "Start", match: (p) => p === "/app", icon: IconDashboard },
@@ -42,12 +42,6 @@ export const primaryNav: readonly NavItem[] = [
     label: "Buckets",
     match: (p) => p === "/app/buckets" || p.startsWith("/app/buckets/"),
     icon: IconBuckets,
-  },
-  {
-    href: "/app/shared",
-    label: "Geteilt",
-    match: (p) => p === "/app/shared" || p.startsWith("/app/shared/"),
-    icon: IconShared,
   },
   {
     href: "/app/entries/new",

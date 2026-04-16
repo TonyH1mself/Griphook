@@ -18,7 +18,7 @@ export function JoinBucketForm() {
   useEffect(() => {
     if (state.successBucketId) {
       const q = state.rebalanceHint ? "?rebalance=1" : "";
-      router.replace(`/app/shared/${state.successBucketId}${q}`);
+      router.replace(`/app/buckets/${state.successBucketId}${q}`);
       router.refresh();
     }
   }, [state.successBucketId, state.rebalanceHint, router]);

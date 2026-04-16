@@ -6,10 +6,10 @@ export default function JoinSharedBucketPage() {
     <div className="space-y-8">
       <div>
         <Link
-          href="/app/shared"
+          href="/app/buckets"
           className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
         >
-          ← Geteilt
+          ← Buckets
         </Link>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">
           Gemeinsamem Bucket beitreten

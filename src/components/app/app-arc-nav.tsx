@@ -9,19 +9,21 @@ import { primaryNav } from "./nav-items";
 
 const TRIGGER_SIZE = 56;
 /**
- * Arc-Geometrie — rechtsbetonter Fächer.
+ * Arc-Geometrie — Rechtskurve für Daumenreichweite.
  * Winkel in mathematischer Konvention: 0° = rechts, 90° = senkrecht nach oben,
- * 180° = links. Der Sweep läuft von 25° (knapp oberhalb horizontal rechts) bis
- * 140° (links-oben über dem Trigger). Apex liegt in der rechten oberen
- * Bildschirmhälfte, passt zur natürlichen Rechts-Daumen-Bewegung aus einer
- * bottom-center-Rest-Position.
+ * 180° = links. Der Sweep läuft absteigend von 125° (leicht oberhalb/links der
+ * Senkrechten) bis 30° (rechts-oben, nah am rechten Bildschirmrand). Das erste
+ * Item sitzt damit oben-links über dem Trigger, das hervorgehobene Primär-Item
+ * „Neu" landet am tiefsten/rechtesten Punkt der Kurve — beste Reichweite für
+ * den rechten Daumen aus einer bottom-center-Rest-Position.
  *
- * Mit 5 Items ergibt das 115° Sweep / 4 Lücken = ≈ 29° pro Schritt. Kombiniert
- * mit einem moderat größeren Radius und schmaleren Chips stellt das deutlich
- * mehr Luft zwischen den Kacheln sicher und hält die 320px-Safety.
+ * Mit 4 Items ergibt das 95° Sweep / 3 Lücken ≈ 32° pro Schritt. Der 30°-
+ * Mindestwinkel sichert auf 320px-Viewports, dass das rechteste Chip nicht
+ * aus dem Bildschirm läuft: cos(30°) * 152px ≈ 132px und entspricht exakt der
+ * verfügbaren Hälfte minus Chip-Radius.
  */
-const ARC_START_DEG = 25;
-const ARC_END_DEG = 140;
+const ARC_START_DEG = 125;
+const ARC_END_DEG = 30;
 /**
  * Radius skaliert viewport-responsiv. `46vw` auf 320px = 147px (clamped auf
  * 152px Floor); auf 420px = 193px (clamped auf 184px Ceiling). Die Chip-

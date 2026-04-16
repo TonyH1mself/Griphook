@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { createEntry, updateEntry, type EntryActionState } from "@/server/entry-actions";
 import Link from "next/link";
-import { useActionState, useId, useState } from "react";
+import { useActionState, useId, useRef, useState, type FormEvent } from "react";
 
 type Category = { id: string; name: string };
 type Bucket = { id: string; name: string; type: string };
@@ -23,8 +23,12 @@ export type EntryInitial = {
   occurred_at: string;
 };
 
-function fieldErr(state: EntryActionState, key: string) {
-  return state.fieldErrors?.[key];
+function mergedFieldErr(
+  state: EntryActionState,
+  clientErrors: Record<string, string>,
+  key: string,
+) {
+  return clientErrors[key] ?? state.fieldErrors?.[key];
 }
 
 const selectClass =
@@ -59,6 +63,8 @@ export function EntryForm({
 
   const initialType = initial?.transaction_type ?? "expense";
   const [txType, setTxType] = useState<"income" | "expense">(initialType);
+  const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
+  const formRef = useRef<HTMLFormElement | null>(null);
   const groupId = useId();
 
   const defaultDate = new Date();
@@ -72,8 +78,61 @@ export function EntryForm({
 
   const defaultBucket = initial?.bucket_id ?? defaultBucketId ?? "none";
 
+  const validate = (fd: FormData): Record<string, string> => {
+    const errs: Record<string, string> = {};
+    const amount = String(fd.get("amount") ?? "").trim();
+    const title = String(fd.get("title") ?? "").trim();
+    const categoryId = String(fd.get("category_id") ?? "").trim();
+    const occurredAt = String(fd.get("occurred_at") ?? "").trim();
+
+    if (!amount) {
+      errs.amount = "Betrag ist erforderlich.";
+    } else {
+      const n = Number.parseFloat(amount.replace(",", "."));
+      if (!Number.isFinite(n) || n < 0) {
+        errs.amount = "Bitte einen gültigen, nicht-negativen Betrag eingeben.";
+      }
+    }
+    if (!title) errs.title = "Bezeichnung ist erforderlich.";
+    if (!categoryId) errs.category_id = "Bitte eine Kategorie wählen.";
+    if (!occurredAt) errs.occurred_at = "Datum ist erforderlich.";
+    return errs;
+  };
+
+  const focusFirstError = (errs: Record<string, string>) => {
+    const order = ["amount", "occurred_at", "title", "category_id"];
+    const form = formRef.current;
+    if (!form) return;
+    for (const key of order) {
+      if (!errs[key]) continue;
+      const el = form.querySelector<HTMLElement>(`[name="${key}"]`);
+      if (el && typeof (el as HTMLElement & { focus?: () => void }).focus === "function") {
+        (el as HTMLElement & { focus: () => void }).focus();
+      }
+      break;
+    }
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const fd = new FormData(event.currentTarget);
+    const errs = validate(fd);
+    if (Object.keys(errs).length > 0) {
+      event.preventDefault();
+      setClientErrors(errs);
+      focusFirstError(errs);
+      return;
+    }
+    setClientErrors({});
+  };
+
   return (
-    <form action={formAction} className="space-y-5 scroll-mt-24">
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={handleSubmit}
+      noValidate
+      className="space-y-5 scroll-mt-24"
+    >
       {mode === "edit" && initial ? (
         <input type="hidden" name="entry_id" value={initial.id} />
       ) : null}
@@ -166,14 +225,18 @@ export function EntryForm({
             id="amount"
             name="amount"
             inputMode="decimal"
-            required
             placeholder="0,00"
             defaultValue={initial?.amount}
             className="min-h-11 text-lg tabular-nums"
-            aria-invalid={!!fieldErr(state, "amount")}
+            aria-invalid={!!mergedFieldErr(state, clientErrors, "amount")}
+            aria-describedby={
+              mergedFieldErr(state, clientErrors, "amount") ? "amount-error" : undefined
+            }
           />
-          {fieldErr(state, "amount") ? (
-            <p className="text-xs text-gh-error-text">{fieldErr(state, "amount")}</p>
+          {mergedFieldErr(state, clientErrors, "amount") ? (
+            <p id="amount-error" className="text-xs text-gh-error-text">
+              {mergedFieldErr(state, clientErrors, "amount")}
+            </p>
           ) : null}
         </div>
         <div className="space-y-2">
@@ -182,13 +245,17 @@ export function EntryForm({
             id="occurred_at"
             name="occurred_at"
             type="datetime-local"
-            required
             defaultValue={occurredValue}
             className="min-h-11"
-            aria-invalid={!!fieldErr(state, "occurred_at")}
+            aria-invalid={!!mergedFieldErr(state, clientErrors, "occurred_at")}
+            aria-describedby={
+              mergedFieldErr(state, clientErrors, "occurred_at") ? "occurred_at-error" : undefined
+            }
           />
-          {fieldErr(state, "occurred_at") ? (
-            <p className="text-xs text-gh-error-text">{fieldErr(state, "occurred_at")}</p>
+          {mergedFieldErr(state, clientErrors, "occurred_at") ? (
+            <p id="occurred_at-error" className="text-xs text-gh-error-text">
+              {mergedFieldErr(state, clientErrors, "occurred_at")}
+            </p>
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -198,12 +265,16 @@ export function EntryForm({
             name="title"
             placeholder="Kurzer Titel"
             defaultValue={initial?.title}
-            required
             className="min-h-11"
-            aria-invalid={!!fieldErr(state, "title")}
+            aria-invalid={!!mergedFieldErr(state, clientErrors, "title")}
+            aria-describedby={
+              mergedFieldErr(state, clientErrors, "title") ? "title-error" : undefined
+            }
           />
-          {fieldErr(state, "title") ? (
-            <p className="text-xs text-gh-error-text">{fieldErr(state, "title")}</p>
+          {mergedFieldErr(state, clientErrors, "title") ? (
+            <p id="title-error" className="text-xs text-gh-error-text">
+              {mergedFieldErr(state, clientErrors, "title")}
+            </p>
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -211,10 +282,12 @@ export function EntryForm({
           <select
             id="category_id"
             name="category_id"
-            required
             defaultValue={initial?.category_id ?? ""}
             className={selectClass}
-            aria-invalid={!!fieldErr(state, "category_id")}
+            aria-invalid={!!mergedFieldErr(state, clientErrors, "category_id")}
+            aria-describedby={
+              mergedFieldErr(state, clientErrors, "category_id") ? "category_id-error" : undefined
+            }
           >
             <option value="" disabled>
               Kategorie auswählen
@@ -225,8 +298,10 @@ export function EntryForm({
               </option>
             ))}
           </select>
-          {fieldErr(state, "category_id") ? (
-            <p className="text-xs text-gh-error-text">{fieldErr(state, "category_id")}</p>
+          {mergedFieldErr(state, clientErrors, "category_id") ? (
+            <p id="category_id-error" className="text-xs text-gh-error-text">
+              {mergedFieldErr(state, clientErrors, "category_id")}
+            </p>
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -244,8 +319,10 @@ export function EntryForm({
               </option>
             ))}
           </select>
-          {fieldErr(state, "bucket_id") ? (
-            <p className="text-xs text-gh-error-text">{fieldErr(state, "bucket_id")}</p>
+          {mergedFieldErr(state, clientErrors, "bucket_id") ? (
+            <p className="text-xs text-gh-error-text">
+              {mergedFieldErr(state, clientErrors, "bucket_id")}
+            </p>
           ) : null}
         </div>
         {variant === "default" ? (

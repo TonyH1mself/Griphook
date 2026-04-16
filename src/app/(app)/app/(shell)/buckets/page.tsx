@@ -94,8 +94,11 @@ export default async function BucketsPage({
             Private oder gemeinsame Töpfe — mit oder ohne Monatsbudget.
           </p>
         </div>
-        <div>
+        <div className="flex flex-wrap gap-2">
           <LinkButton href="/app/buckets/new">Neuer Bucket</LinkButton>
+          <LinkButton href="/app/shared/join" variant="secondary">
+            Mit Code beitreten
+          </LinkButton>
         </div>
       </header>
 

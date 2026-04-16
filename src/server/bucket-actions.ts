@@ -109,7 +109,6 @@ export async function createBucket(
   }
 
   revalidatePath("/app/buckets");
-  revalidatePath("/app/shared");
   revalidatePath("/app");
   redirect(`/app/buckets/${bucket.id}`);
 }
@@ -200,7 +199,6 @@ export async function archiveBucket(bucketId: string): Promise<{ error?: string;
   revalidatePath("/app/buckets");
   revalidatePath("/app");
   revalidatePath(`/app/buckets/${bucketId}`);
-  revalidatePath("/app/shared");
   return { ok: true };
 }
 
@@ -217,7 +215,6 @@ export async function unarchiveBucket(bucketId: string): Promise<{ error?: strin
   revalidatePath("/app/buckets");
   revalidatePath("/app");
   revalidatePath(`/app/buckets/${bucketId}`);
-  revalidatePath("/app/shared");
   return { ok: true };
 }
 
@@ -261,6 +258,5 @@ export async function regenerateJoinCode(bucketId: string) {
   if (error) return { error: friendlyBucketError(error) };
 
   revalidatePath(`/app/buckets/${bucketId}`);
-  revalidatePath("/app/shared");
   return { ok: true, join_code: nextCode };
 }

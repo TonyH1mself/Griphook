@@ -250,13 +250,13 @@ export default async function DashboardPage() {
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-4">
             <h2 className="text-sm font-semibold text-gh-text">Geteilte Fairness</h2>
-            <Link href="/app/shared" className={linkSubtle}>
-              Geteilt
+            <Link href="/app/buckets?type=shared" className={linkSubtle}>
+              Gemeinsame Buckets
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {sharedPreviews.map(({ bucket, total, maxDelta, memberCount }) => (
-              <Link key={bucket.id} href={`/app/shared/${bucket.id}`}>
+              <Link key={bucket.id} href={`/app/buckets/${bucket.id}`}>
                 <Card className="h-full transition-[background-color,box-shadow] duration-150 hover:bg-gh-surface motion-reduce:transition-none">
                   <CardTitle>{bucket.name}</CardTitle>
                   <CardDescription>
