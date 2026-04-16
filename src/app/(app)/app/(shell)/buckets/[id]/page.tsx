@@ -10,7 +10,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { remainingBucketBudget, sharedBucketBreakdown } from "@/lib/domain";
 import { requireUser } from "@/lib/auth/guards";
 import { formatEur } from "@/lib/format";
-import { fetchCategoriesForPicker } from "@/lib/supabase/categories-picker-filter";
+import { loadCategoriesForPicker } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -113,7 +113,7 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
         )
       : [];
 
-  const categories = await fetchCategoriesForPicker(supabase, user.id, null);
+  const picker = await loadCategoriesForPicker(supabase, user.id);
   const { data: allBuckets } = await supabase
     .from("buckets")
     .select("id,name,type")
@@ -259,10 +259,11 @@ export default async function BucketDetailPage({ params }: { params: Promise<{ i
           </CardDescription>
           <div className="mt-6">
             <EntryForm
-              categories={categories}
+              categories={picker.rows}
               buckets={allBuckets ?? []}
               defaultBucketId={id}
               returnTo={`/app/buckets/${id}`}
+              categoriesLoadError={picker.loadError}
             />
           </div>
         </Card>

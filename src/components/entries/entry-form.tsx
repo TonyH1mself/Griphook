@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { createEntry, updateEntry, type EntryActionState } from "@/server/entry-actions";
+import Link from "next/link";
 import { useActionState, useId, useState } from "react";
 
 type Category = { id: string; name: string };
@@ -37,6 +38,7 @@ export function EntryForm({
   defaultBucketId,
   variant = "default",
   returnTo,
+  categoriesLoadError = false,
 }: {
   categories: Category[];
   buckets: Bucket[];
@@ -45,9 +47,15 @@ export function EntryForm({
   defaultBucketId?: string | null;
   variant?: "default" | "compact";
   returnTo?: string | null;
+  /** True if loading categories from the DB failed (e.g. broken RLS or missing column). */
+  categoriesLoadError?: boolean;
 }) {
   const action = mode === "edit" ? updateEntry : createEntry;
   const [state, formAction, pending] = useActionState<EntryActionState, FormData>(action, {});
+
+  const noCategories = categories.length === 0;
+  // In edit mode an existing category_id can still be saved even if the picker is empty.
+  const blockSubmit = mode === "create" && noCategories;
 
   const initialType = initial?.transaction_type ?? "expense";
   const [txType, setTxType] = useState<"income" | "expense">(initialType);
@@ -71,6 +79,41 @@ export function EntryForm({
       ) : null}
       {mode === "create" && returnTo ? (
         <input type="hidden" name="return_to" value={returnTo} />
+      ) : null}
+
+      {mode === "create" && noCategories ? (
+        <div
+          role="alert"
+          className="rounded-2xl border border-gh-warning/30 bg-gh-warning-soft px-4 py-3 text-sm text-gh-warning"
+        >
+          {categoriesLoadError ? (
+            <>
+              <p className="font-medium">Kategorien konnten nicht geladen werden.</p>
+              <p className="mt-1 text-xs">
+                Wahrscheinlich fehlt eine Datenbank-Migration. Bitte{" "}
+                <code className="rounded bg-gh-surface-inset/60 px-1 py-0.5">
+                  supabase/migrations/20260415210000_categories_is_archived.sql
+                </code>{" "}
+                anwenden (siehe docs/setup.md).
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-medium">Keine Kategorien verfügbar.</p>
+              <p className="mt-1 text-xs">
+                Bitte zuerst eine Kategorie anlegen — danach lassen sich Einträge speichern.
+              </p>
+              <p className="mt-2">
+                <Link
+                  href="/app/categories"
+                  className="font-medium underline decoration-gh-warning/50 underline-offset-2 hover:text-gh-warning"
+                >
+                  Kategorien öffnen
+                </Link>
+              </p>
+            </>
+          )}
+        </div>
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -123,6 +166,7 @@ export function EntryForm({
             id="amount"
             name="amount"
             inputMode="decimal"
+            required
             placeholder="0,00"
             defaultValue={initial?.amount}
             className="min-h-11 text-lg tabular-nums"
@@ -217,7 +261,12 @@ export function EntryForm({
         ) : null}
       </div>
       {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
-      <Button type="submit" className="min-h-12 w-full rounded-2xl sm:w-auto" disabled={pending}>
+      <Button
+        type="submit"
+        className="min-h-12 w-full rounded-2xl sm:w-auto"
+        disabled={pending || blockSubmit}
+        aria-disabled={pending || blockSubmit}
+      >
         {pending ? "Speichern…" : mode === "edit" ? "Änderungen speichern" : "Eintrag speichern"}
       </Button>
     </form>

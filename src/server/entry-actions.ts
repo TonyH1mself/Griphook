@@ -16,6 +16,12 @@ function friendlyEntryError(error: { message?: string; code?: string }): string 
   if (error.code === "23503") {
     return "Diese Kategorie oder dieser Bucket existiert nicht mehr. Bitte andere wählen.";
   }
+  if (error.code === "23514") {
+    return "Bitte einen gültigen, nicht-negativen Betrag eingeben.";
+  }
+  if (error.code === "42703" || /column .* does not exist/i.test(error.message ?? "")) {
+    return "Der Datenbank fehlt eine Spalte. Bitte die neuesten Supabase-Migrationen aus supabase/migrations/*.sql anwenden (siehe docs/setup.md).";
+  }
   return "Etwas ist schiefgelaufen. Bitte erneut versuchen.";
 }
 

@@ -1,6 +1,6 @@
 import { EntryForm } from "@/components/entries/entry-form";
 import { requireUser } from "@/lib/auth/guards";
-import { categoriesPickerOrFilter } from "@/lib/supabase/categories-picker-filter";
+import { loadCategoriesForPicker } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 
 export default async function NewEntryPage({
@@ -10,12 +10,8 @@ export default async function NewEntryPage({
 }) {
   const sp = await searchParams;
   const { supabase, user } = await requireUser();
-  const [{ data: categories }, { data: buckets }] = await Promise.all([
-    supabase
-      .from("categories")
-      .select("id,name")
-      .or(categoriesPickerOrFilter(user.id))
-      .order("name"),
+  const [picker, { data: buckets }] = await Promise.all([
+    loadCategoriesForPicker(supabase, user.id),
     supabase.from("buckets").select("id,name,type").eq("is_archived", false).order("name"),
   ]);
 
@@ -31,7 +27,12 @@ export default async function NewEntryPage({
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">Neuer Eintrag</h1>
         <p className="mt-1 text-sm text-gh-text-muted">Für schnelle Erfassung auf dem Handy.</p>
       </div>
-      <EntryForm categories={categories ?? []} buckets={buckets ?? []} returnTo={sp.returnTo} />
+      <EntryForm
+        categories={picker.rows}
+        buckets={buckets ?? []}
+        returnTo={sp.returnTo}
+        categoriesLoadError={picker.loadError}
+      />
     </div>
   );
 }

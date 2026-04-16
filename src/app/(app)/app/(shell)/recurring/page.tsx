@@ -5,7 +5,7 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { ListPanel } from "@/components/ui/list-panel";
 import { requireUser } from "@/lib/auth/guards";
 import { formatEur } from "@/lib/format";
-import { categoriesPickerOrFilter } from "@/lib/supabase/categories-picker-filter";
+import { loadCategoriesForPicker } from "@/lib/supabase/categories-picker-filter";
 import Link from "next/link";
 
 export default async function RecurringPage({
@@ -16,20 +16,17 @@ export default async function RecurringPage({
   const sp = await searchParams;
   const { supabase, user } = await requireUser();
 
-  const [{ data: templates }, { data: categories }, { data: buckets }] = await Promise.all([
+  const [{ data: templates }, picker, { data: buckets }] = await Promise.all([
     supabase
       .from("recurring_entry_templates")
       .select(
         "id,title,amount,transaction_type,frequency,next_due_at,is_active,categories(name),buckets(name)",
       )
       .order("next_due_at", { ascending: true }),
-    supabase
-      .from("categories")
-      .select("id,name")
-      .or(categoriesPickerOrFilter(user.id))
-      .order("name"),
+    loadCategoriesForPicker(supabase, user.id),
     supabase.from("buckets").select("id,name,type").eq("is_archived", false).order("name"),
   ]);
+  const categories = picker.rows;
 
   return (
     <div className="space-y-10">
