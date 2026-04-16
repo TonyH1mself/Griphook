@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { LinkButton } from "@/components/ui/link-button";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/server/auth-actions";
-import Link from "next/link";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -16,10 +16,8 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-          Settings
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">Profile, session, and future preferences.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Settings</h1>
+        <p className="mt-1 text-sm text-gh-text-muted">Profile, session, and future preferences.</p>
       </header>
 
       <Card>
@@ -27,16 +25,16 @@ export default async function SettingsPage() {
         <CardDescription>Synced from your GripHook profile row.</CardDescription>
         <dl className="mt-4 space-y-3 text-sm">
           <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-400">Email</dt>
-            <dd className="mt-1 text-slate-900 dark:text-white">{user?.email ?? "—"}</dd>
+            <dt className="text-xs uppercase tracking-wide text-gh-text-muted">Email</dt>
+            <dd className="mt-1 text-gh-text">{user?.email ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-400">Username</dt>
-            <dd className="mt-1 text-slate-900 dark:text-white">{profile?.username ?? "—"}</dd>
+            <dt className="text-xs uppercase tracking-wide text-gh-text-muted">Username</dt>
+            <dd className="mt-1 text-gh-text">{profile?.username ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-400">Display name</dt>
-            <dd className="mt-1 text-slate-900 dark:text-white">{profile?.display_name ?? "—"}</dd>
+            <dt className="text-xs uppercase tracking-wide text-gh-text-muted">Display name</dt>
+            <dd className="mt-1 text-gh-text">{profile?.display_name ?? "—"}</dd>
           </div>
         </dl>
       </Card>
@@ -53,13 +51,12 @@ export default async function SettingsPage() {
 
       <Card>
         <CardTitle>Categories</CardTitle>
-        <CardDescription>Create and archive your own labels for entries and recurring items.</CardDescription>
-        <Link
-          href="/app/categories"
-          className="mt-4 inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 text-sm font-medium text-white dark:bg-white dark:text-slate-900"
-        >
+        <CardDescription>
+          Create and archive your own labels for entries and recurring items.
+        </CardDescription>
+        <LinkButton href="/app/categories" className="mt-4 min-h-11 rounded-2xl">
           Manage categories
-        </Link>
+        </LinkButton>
       </Card>
 
       <Card>

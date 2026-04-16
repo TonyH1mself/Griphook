@@ -28,6 +28,11 @@ function filterHref(status: StatusFilter, type: TypeFilter): string {
   return qs ? `/app/buckets?${qs}` : "/app/buckets";
 }
 
+const chipActive =
+  "bg-gh-accent-muted text-gh-accent shadow-[inset_0_0_0_1px_rgb(106_158_148/0.35)]";
+const chipIdle =
+  "border border-gh-border bg-gh-surface-elevated/50 text-gh-text-secondary hover:border-gh-text-muted/25 hover:bg-gh-surface";
+
 export default async function BucketsPage({
   searchParams,
 }: {
@@ -84,43 +89,39 @@ export default async function BucketsPage({
     <div className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-            Buckets
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">Private or shared pots — with or without a budget cap.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Buckets</h1>
+          <p className="mt-1 text-sm text-gh-text-muted">
+            Private or shared pots — with or without a budget cap.
+          </p>
         </div>
         <LinkButton href="/app/buckets/new">New bucket</LinkButton>
       </header>
 
       <div className="flex flex-col gap-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Status</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">Status</p>
         <div className="flex flex-wrap gap-2">
           {statusTabs.map((t) => (
             <Link
               key={t.key}
               href={filterHref(t.key, type)}
               className={cn(
-                "inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-colors",
-                status === t.key
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800",
+                "inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-[background-color,color,box-shadow,border-color] duration-150 motion-reduce:transition-none",
+                status === t.key ? chipActive : chipIdle,
               )}
             >
               {t.label}
             </Link>
           ))}
         </div>
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Type</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">Type</p>
         <div className="flex flex-wrap gap-2">
           {typeTabs.map((t) => (
             <Link
               key={t.key}
               href={filterHref(status, t.key)}
               className={cn(
-                "inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-colors",
-                type === t.key
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800",
+                "inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-[background-color,color,box-shadow,border-color] duration-150 motion-reduce:transition-none",
+                type === t.key ? chipActive : chipIdle,
               )}
             >
               {t.label}
@@ -138,7 +139,9 @@ export default async function BucketsPage({
               : "Create a bucket to group spending and optional monthly caps."
           }
           action={
-            status !== "archived" ? <LinkButton href="/app/buckets/new">Create bucket</LinkButton> : null
+            status !== "archived" ? (
+              <LinkButton href="/app/buckets/new">Create bucket</LinkButton>
+            ) : null
           }
         />
       ) : (
@@ -162,24 +165,24 @@ export default async function BucketsPage({
               <li key={b.id}>
                 <Link
                   href={`/app/buckets/${b.id}`}
-                  className="flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white p-4 transition-colors hover:border-slate-300 hover:bg-slate-50/80 dark:border-slate-800 dark:bg-slate-900/40 dark:hover:border-slate-700 dark:hover:bg-slate-900/80"
+                  className="flex h-full flex-col rounded-2xl border border-gh-border-subtle bg-gh-surface/85 p-4 shadow-gh-panel backdrop-blur-sm transition-[border-color,background-color,box-shadow] duration-150 hover:border-gh-accent/20 hover:bg-gh-surface-elevated/90 motion-reduce:transition-none"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{b.name}</p>
-                      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+                      <p className="text-sm font-semibold text-gh-text">{b.name}</p>
+                      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gh-text-muted">
                         <span
                           className={cn(
                             "rounded-full px-2 py-0.5 font-medium",
                             b.type === "shared"
-                              ? "bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-200"
-                              : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+                              ? "bg-gh-accent-muted text-gh-accent"
+                              : "bg-gh-surface-inset text-gh-text-secondary ring-1 ring-gh-border-subtle",
                           )}
                         >
                           {b.type === "shared" ? "Shared" : "Private"}
                         </span>
                         {b.is_archived ? (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-900 dark:bg-amber-950/50 dark:text-amber-100">
+                          <span className="rounded-full bg-gh-warning-soft px-2 py-0.5 font-medium text-gh-warning ring-1 ring-gh-warning/25">
                             Archived
                           </span>
                         ) : null}
@@ -194,18 +197,16 @@ export default async function BucketsPage({
                     </div>
                   </div>
                   <div className="mt-4 space-y-2 text-sm">
-                    <div className="flex justify-between tabular-nums text-slate-600 dark:text-slate-300">
+                    <div className="flex justify-between tabular-nums text-gh-text-secondary">
                       <span>This month (expenses)</span>
-                      <span className="font-medium text-slate-900 dark:text-white">
-                        {formatEur(spent)}
-                      </span>
+                      <span className="font-medium text-gh-text">{formatEur(spent)}</span>
                     </div>
                     {cap != null && Number.isFinite(cap) ? (
                       <>
-                        <div className="flex justify-between text-xs tabular-nums text-slate-500">
+                        <div className="flex justify-between text-xs tabular-nums text-gh-text-muted">
                           <span>of {formatEur(cap)}</span>
                           {overBy != null ? (
-                            <span className="font-medium text-rose-600 dark:text-rose-400">
+                            <span className="font-medium text-gh-danger">
                               Over by {formatEur(overBy)}
                             </span>
                           ) : remaining != null ? (
@@ -215,16 +216,14 @@ export default async function BucketsPage({
                         <ProgressBar
                           value={ratio > 1 ? 1 : ratio}
                           indicatorClassName={
-                            over
-                              ? "bg-rose-600 dark:bg-rose-500"
-                              : tight
-                                ? "bg-amber-500"
-                                : undefined
+                            over ? "bg-gh-danger" : tight ? "bg-gh-warning" : undefined
                           }
                         />
                       </>
                     ) : (
-                      <p className="text-xs text-slate-500">No monthly cap — spending still tracked.</p>
+                      <p className="text-xs text-gh-text-muted">
+                        No monthly cap — spending still tracked.
+                      </p>
                     )}
                   </div>
                 </Link>

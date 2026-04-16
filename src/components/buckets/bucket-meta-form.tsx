@@ -34,7 +34,7 @@ export function BucketMetaForm({
           className="min-h-11"
           required
         />
-        {fe(state, "name") ? <p className="text-xs text-red-600">{fe(state, "name")}</p> : null}
+        {fe(state, "name") ? <p className="text-xs text-gh-error-text">{fe(state, "name")}</p> : null}
       </div>
       <div className="space-y-2">
         <Label htmlFor={`meta-desc-${bucketId}`}>Description</Label>
@@ -45,10 +45,10 @@ export function BucketMetaForm({
           rows={3}
         />
         {fe(state, "description") ? (
-          <p className="text-xs text-red-600">{fe(state, "description")}</p>
+          <p className="text-xs text-gh-error-text">{fe(state, "description")}</p>
         ) : null}
       </div>
-      {state.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
+      {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" variant="secondary" className="min-h-11 rounded-2xl" disabled={pending}>
         {pending ? "Saving…" : "Save details"}
       </Button>

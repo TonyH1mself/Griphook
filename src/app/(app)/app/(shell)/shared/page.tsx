@@ -55,10 +55,8 @@ export default async function SharedPage() {
     <div className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-            Shared
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">Households, trips, and other shared pots.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Shared</h1>
+          <p className="mt-1 text-sm text-gh-text-muted">Households, trips, and other shared pots.</p>
         </div>
         <LinkButton href="/app/shared/join" variant="secondary">
           Join with code
@@ -89,18 +87,16 @@ export default async function SharedPage() {
               <li key={b.id}>
                 <Link
                   href={`/app/shared/${b.id}`}
-                  className="flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white p-4 transition-colors hover:border-slate-300 hover:bg-slate-50/80 dark:border-slate-800 dark:bg-slate-900/40 dark:hover:border-slate-700 dark:hover:bg-slate-900/80"
+                  className="flex h-full flex-col rounded-2xl border border-gh-border-subtle bg-gh-surface/85 p-4 shadow-gh-panel backdrop-blur-sm transition-[border-color,background-color] duration-150 hover:border-gh-accent/20 hover:bg-gh-surface-elevated/90 motion-reduce:transition-none"
                 >
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{b.name}</p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="text-sm font-semibold text-gh-text">{b.name}</p>
+                  <p className="mt-1 text-xs text-gh-text-muted">
                     Code {b.join_code} · {n} {n === 1 ? "member" : "members"}
                     {budgetHint}
                   </p>
-                  <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                    <span className="font-medium text-slate-900 dark:text-white">
-                      {formatEur(total)}
-                    </span>{" "}
-                    expenses this month · max |Δ| {formatEur(maxDelta)}
+                  <p className="mt-3 text-sm text-gh-text-secondary">
+                    <span className="font-medium text-gh-text">{formatEur(total)}</span> expenses
+                    this month · max |Δ| {formatEur(maxDelta)}
                   </p>
                 </Link>
               </li>

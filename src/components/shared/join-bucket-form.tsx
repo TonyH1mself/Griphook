@@ -39,10 +39,10 @@ export function JoinBucketForm() {
           aria-invalid={!!fe(state, "code")}
         />
         {fe(state, "code") ? (
-          <p className="text-xs text-red-600 dark:text-red-400">{fe(state, "code")}</p>
+          <p className="text-xs text-gh-error-text">{fe(state, "code")}</p>
         ) : null}
       </div>
-      {state.error ? <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p> : null}
+      {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" className="min-h-12 w-full rounded-2xl" disabled={pending}>
         {pending ? "Joining…" : "Join bucket"}
       </Button>

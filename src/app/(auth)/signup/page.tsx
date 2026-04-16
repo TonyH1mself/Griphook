@@ -20,14 +20,14 @@ export default async function SignupPage({
     <div>
       <Link
         href="/"
-        className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+        className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
       >
         ← Back
       </Link>
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-        Create your account
-      </h1>
-      <p className="mt-2 text-sm text-slate-500">Buckets, entries, and shared pots — in minutes.</p>
+      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-gh-text">Create your account</h1>
+      <p className="mt-2 text-sm text-gh-text-muted">
+        Buckets, entries, and shared pots — in minutes.
+      </p>
       <div className="mt-8">
         <SignupForm />
       </div>

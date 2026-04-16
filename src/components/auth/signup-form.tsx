@@ -48,18 +48,20 @@ export function SignupForm() {
 
   if (needsEmailConfirmation) {
     return (
-      <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-5 dark:border-slate-800 dark:bg-slate-900/50">
-        <p className="text-sm font-medium text-slate-900 dark:text-white">Check your email</p>
-        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+      <div className="space-y-4 rounded-2xl border border-gh-border-subtle bg-gh-surface/90 p-5 shadow-gh-panel backdrop-blur-sm">
+        <p className="text-sm font-medium text-gh-text">Check your email</p>
+        <p className="text-sm leading-relaxed text-gh-text-secondary">
           We sent a confirmation link to{" "}
-          <span className="font-medium text-slate-900 dark:text-white">{email}</span>. After you
-          confirm, you will be signed in and can finish your profile.
+          <span className="font-medium text-gh-text">{email}</span>. After you confirm, you will be
+          signed in and can finish your profile.
         </p>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-gh-text-muted">
           If the link opens in the wrong environment, set{" "}
-          <code className="rounded bg-slate-200 px-1 dark:bg-slate-800">NEXT_PUBLIC_APP_URL</code>{" "}
+          <code className="rounded bg-gh-surface-inset px-1 text-gh-text-secondary ring-1 ring-gh-border-subtle">
+            NEXT_PUBLIC_APP_URL
+          </code>{" "}
           to your app URL (e.g. on Vercel) and add{" "}
-          <code className="rounded bg-slate-200 px-1 dark:bg-slate-800">
+          <code className="rounded bg-gh-surface-inset px-1 text-gh-text-secondary ring-1 ring-gh-border-subtle">
             {getSiteUrl()}/auth/callback
           </code>{" "}
           under Supabase Auth redirect URLs.
@@ -72,8 +74,11 @@ export function SignupForm() {
         >
           Use a different email
         </Button>
-        <p className="text-center text-sm text-slate-500">
-          <Link href="/login" className="font-medium text-slate-900 underline dark:text-white">
+        <p className="text-center text-sm text-gh-text-muted">
+          <Link
+            href="/login"
+            className="font-medium text-gh-accent underline decoration-gh-accent/40 underline-offset-2 transition-colors hover:text-gh-accent-hover"
+          >
             Back to sign in
           </Link>
         </p>
@@ -109,15 +114,18 @@ export function SignupForm() {
           onChange={(e) => setPassword(e.target.value)}
           className="min-h-11"
         />
-        <p className="text-xs text-slate-500">At least 8 characters.</p>
+        <p className="text-xs text-gh-text-muted">At least 8 characters.</p>
       </div>
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="text-sm text-gh-error-text">{error}</p> : null}
       <Button type="submit" className="min-h-11 w-full rounded-2xl" disabled={pending}>
         {pending ? "Creating account…" : "Create account"}
       </Button>
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-gh-text-muted">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-slate-900 underline dark:text-white">
+        <Link
+          href="/login"
+          className="font-medium text-gh-accent underline decoration-gh-accent/40 underline-offset-2 transition-colors hover:text-gh-accent-hover"
+        >
           Sign in
         </Link>
       </p>

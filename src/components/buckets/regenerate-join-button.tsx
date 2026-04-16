@@ -36,8 +36,8 @@ export function RegenerateJoinButton({ bucketId }: { bucketId: string }) {
       >
         {pending ? "Regenerating…" : "Regenerate join code"}
       </Button>
-      {message ? <p className="text-xs text-slate-500">{message}</p> : null}
-      {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
+      {message ? <p className="text-xs text-gh-text-muted">{message}</p> : null}
+      {error ? <p className="text-xs text-gh-error-text">{error}</p> : null}
     </div>
   );
 }

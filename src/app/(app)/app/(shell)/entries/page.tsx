@@ -1,10 +1,19 @@
 import { EmptyState } from "@/components/app/empty-state";
 import { LinkButton } from "@/components/ui/link-button";
+import { ListPanel } from "@/components/ui/list-panel";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatEur } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+
+const filterInput =
+  "min-h-11 w-full rounded-xl border border-gh-border bg-gh-surface-inset px-3 text-sm text-gh-text shadow-[inset_0_1px_2px_rgb(0_0_0/0.2)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-gh-accent/50 focus:ring-2 focus:ring-gh-ring/35 motion-reduce:transition-none";
+
+const chipActive =
+  "bg-gh-accent-muted text-gh-accent shadow-[inset_0_0_0_1px_rgb(106_158_148/0.35)]";
+const chipIdle =
+  "border border-gh-border bg-gh-surface-elevated/50 text-gh-text-secondary hover:border-gh-text-muted/25 hover:bg-gh-surface";
 
 export default async function EntriesPage({
   searchParams,
@@ -51,24 +60,25 @@ export default async function EntriesPage({
     <div className="space-y-8">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-            Entries
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">Fast capture, clear history.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Entries</h1>
+          <p className="mt-1 text-sm text-gh-text-muted">Fast capture, clear history.</p>
         </div>
         <LinkButton href="/app/entries/new">New entry</LinkButton>
       </header>
 
       {sp.saved === "1" ? (
-        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-100">
+        <p className="rounded-2xl border border-gh-accent/25 bg-gh-info-soft px-4 py-3 text-sm text-gh-positive">
           Entry saved.
         </p>
       ) : null}
 
-      <form method="get" className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/40">
+      <form
+        method="get"
+        className="space-y-4 rounded-2xl border border-gh-border-subtle bg-gh-surface/85 p-4 shadow-gh-panel backdrop-blur-sm"
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
           <div className="min-w-0 flex-1 space-y-1">
-            <label htmlFor="q" className="text-xs font-medium text-slate-500">
+            <label htmlFor="q" className="text-xs font-medium text-gh-text-muted">
               Search title
             </label>
             <input
@@ -76,18 +86,18 @@ export default async function EntriesPage({
               name="q"
               defaultValue={q}
               placeholder="e.g. groceries"
-              className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950"
+              className={filterInput}
             />
           </div>
           <div className="space-y-1">
-            <label htmlFor="bucket" className="text-xs font-medium text-slate-500">
+            <label htmlFor="bucket" className="text-xs font-medium text-gh-text-muted">
               Bucket
             </label>
             <select
               id="bucket"
               name="bucket"
               defaultValue={bucketFilter ?? ""}
-              className="min-h-11 w-full min-w-[12rem] rounded-xl border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950 sm:w-auto"
+              className={`${filterInput} min-w-[12rem] sm:w-auto`}
             >
               <option value="">All buckets</option>
               {(bucketOptions ?? []).map((b) => (
@@ -103,7 +113,7 @@ export default async function EntriesPage({
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
-          <span className="w-full text-xs font-medium uppercase tracking-wide text-slate-400 sm:w-auto sm:py-2">
+          <span className="w-full text-xs font-medium uppercase tracking-wide text-gh-text-muted sm:w-auto sm:py-2">
             Type
           </span>
           {(
@@ -127,10 +137,8 @@ export default async function EntriesPage({
                 key={label}
                 href={href}
                 className={cn(
-                  "inline-flex min-h-9 items-center rounded-full px-3 text-sm font-medium",
-                  active
-                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                    : "border border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300",
+                  "inline-flex min-h-9 items-center rounded-full px-3 text-sm font-medium transition-[background-color,color,box-shadow] duration-150 motion-reduce:transition-none",
+                  active ? chipActive : chipIdle,
                 )}
               >
                 {label}
@@ -159,7 +167,7 @@ export default async function EntriesPage({
           }
         />
       ) : (
-        <ul className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200/80 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/40">
+        <ListPanel>
           {entries.map((e) => {
             const cat =
               e.categories && typeof e.categories === "object" && "name" in e.categories
@@ -177,19 +185,15 @@ export default async function EntriesPage({
             return (
               <li key={e.id} className="flex items-center justify-between gap-4 px-4 py-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
-                    {e.title}
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-500">
+                  <p className="truncate text-sm font-medium text-gh-text">{e.title}</p>
+                  <p className="mt-0.5 text-xs text-gh-text-muted">
                     {cat}
                     {bucket ? (
                       <>
                         {" · "}
                         <span
                           className={
-                            bucketType === "shared"
-                              ? "text-violet-700 dark:text-violet-300"
-                              : undefined
+                            bucketType === "shared" ? "font-medium text-gh-accent" : undefined
                           }
                         >
                           {bucket}
@@ -204,8 +208,8 @@ export default async function EntriesPage({
                   <p
                     className={
                       e.transaction_type === "income"
-                        ? "text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-400"
-                        : "text-sm font-semibold tabular-nums text-rose-700 dark:text-rose-400"
+                        ? "text-sm font-semibold tabular-nums text-gh-positive"
+                        : "text-sm font-semibold tabular-nums text-gh-danger"
                     }
                   >
                     {e.transaction_type === "income" ? "+" : "−"}
@@ -214,7 +218,7 @@ export default async function EntriesPage({
                   {canEdit ? (
                     <Link
                       href={`/app/entries/${e.id}/edit`}
-                      className="text-xs font-medium text-slate-500 underline"
+                      className="text-xs font-medium text-gh-text-muted underline decoration-gh-border transition-colors hover:text-gh-accent"
                     >
                       Edit
                     </Link>
@@ -223,7 +227,7 @@ export default async function EntriesPage({
               </li>
             );
           })}
-        </ul>
+        </ListPanel>
       )}
     </div>
   );

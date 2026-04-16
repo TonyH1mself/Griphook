@@ -30,19 +30,19 @@ export function OnboardingForm() {
       <div className="space-y-2">
         <Label htmlFor="username">Username</Label>
         <Input id="username" name="username" autoComplete="username" className="min-h-11" />
-        <p className="text-xs text-slate-500">Lowercase letters, numbers, underscores. Unique.</p>
+        <p className="text-xs text-gh-text-muted">Lowercase letters, numbers, underscores. Unique.</p>
         {fe(state, "username") ? (
-          <p className="text-xs text-red-600 dark:text-red-400">{fe(state, "username")}</p>
+          <p className="text-xs text-gh-error-text">{fe(state, "username")}</p>
         ) : null}
       </div>
       <div className="space-y-2">
         <Label htmlFor="display_name">Display name</Label>
         <Input id="display_name" name="display_name" autoComplete="name" className="min-h-11" />
         {fe(state, "display_name") ? (
-          <p className="text-xs text-red-600 dark:text-red-400">{fe(state, "display_name")}</p>
+          <p className="text-xs text-gh-error-text">{fe(state, "display_name")}</p>
         ) : null}
       </div>
-      {state.error ? <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p> : null}
+      {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" className="min-h-11 w-full rounded-2xl" disabled={pending}>
         {pending ? "Saving…" : "Continue"}
       </Button>

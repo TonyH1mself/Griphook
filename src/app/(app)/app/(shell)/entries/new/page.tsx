@@ -24,14 +24,12 @@ export default async function NewEntryPage({
       <div>
         <Link
           href="/app/entries"
-          className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+          className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
         >
           ← Entries
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-          New entry
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">Optimized for quick mobile capture.</p>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">New entry</h1>
+        <p className="mt-1 text-sm text-gh-text-muted">Optimized for quick mobile capture.</p>
       </div>
       <EntryForm categories={categories ?? []} buckets={buckets ?? []} returnTo={sp.returnTo} />
     </div>

@@ -35,13 +35,13 @@ export function CategoryEditForm({
         {pending ? "Saving…" : "Save"}
       </Button>
       {fe(state, "name") ? (
-        <p className="w-full text-xs text-red-600 dark:text-red-400">{fe(state, "name")}</p>
+        <p className="w-full text-xs text-gh-error-text">{fe(state, "name")}</p>
       ) : null}
       {state.error ? (
-        <p className="w-full text-xs text-red-600 dark:text-red-400">{state.error}</p>
+        <p className="w-full text-xs text-gh-error-text">{state.error}</p>
       ) : null}
       {state.ok ? (
-        <p className="w-full text-xs text-emerald-700 dark:text-emerald-400">Saved.</p>
+        <p className="w-full text-xs text-gh-positive">Saved.</p>
       ) : null}
     </form>
   );

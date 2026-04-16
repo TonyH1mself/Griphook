@@ -31,6 +31,11 @@ function fieldErr(state: RecurringActionState, key: string) {
   return state.fieldErrors?.[key];
 }
 
+const selectBase =
+  "min-h-11 w-full rounded-xl border border-gh-border bg-gh-surface-inset px-3 py-2.5 text-sm text-gh-text shadow-[inset_0_1px_2px_rgb(0_0_0/0.2)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-gh-accent/50 focus:ring-2 focus:ring-gh-ring/35 motion-reduce:transition-none";
+
+const selectInvalid = "border-gh-danger/45 focus:border-gh-danger/55 focus:ring-gh-danger/20";
+
 export function RecurringForm({
   categories,
   buckets,
@@ -42,8 +47,7 @@ export function RecurringForm({
   mode?: "create" | "edit";
   initial?: RecurringInitial;
 }) {
-  const serverAction =
-    mode === "edit" ? updateRecurringTemplate : createRecurringTemplate;
+  const serverAction = mode === "edit" ? updateRecurringTemplate : createRecurringTemplate;
   const [state, action, pending] = useActionState<RecurringActionState, FormData>(serverAction, {});
 
   const defaultNext = new Date();
@@ -70,12 +74,7 @@ export function RecurringForm({
             id="transaction_type"
             name="transaction_type"
             defaultValue={initial?.transaction_type ?? "expense"}
-            className={cn(
-              "min-h-11 w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 dark:bg-slate-950 dark:text-slate-50",
-              fieldErr(state, "transaction_type")
-                ? "border-red-300 focus:border-red-400 focus:ring-red-100 dark:border-red-800"
-                : "border-slate-200 focus:border-slate-400 focus:ring-slate-200 dark:border-slate-700",
-            )}
+            className={cn(selectBase, fieldErr(state, "transaction_type") && selectInvalid)}
           >
             <option value="expense">Expense</option>
             <option value="income">Income</option>
@@ -93,7 +92,7 @@ export function RecurringForm({
             aria-invalid={!!fieldErr(state, "amount")}
           />
           {fieldErr(state, "amount") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">{fieldErr(state, "amount")}</p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "amount")}</p>
           ) : null}
         </div>
         <div className="space-y-2">
@@ -102,12 +101,7 @@ export function RecurringForm({
             id="frequency"
             name="frequency"
             defaultValue={initial?.frequency ?? "monthly"}
-            className={cn(
-              "min-h-11 w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 dark:bg-slate-950 dark:text-slate-50",
-              fieldErr(state, "frequency")
-                ? "border-red-300 focus:border-red-400 focus:ring-red-100 dark:border-red-800"
-                : "border-slate-200 focus:border-slate-400 focus:ring-slate-200 dark:border-slate-700",
-            )}
+            className={cn(selectBase, fieldErr(state, "frequency") && selectInvalid)}
           >
             <option value="monthly">Monthly</option>
             <option value="weekly">Weekly</option>
@@ -124,7 +118,7 @@ export function RecurringForm({
             aria-invalid={!!fieldErr(state, "title")}
           />
           {fieldErr(state, "title") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">{fieldErr(state, "title")}</p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "title")}</p>
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -133,12 +127,7 @@ export function RecurringForm({
             id="category_id"
             name="category_id"
             required
-            className={cn(
-              "min-h-11 w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 dark:bg-slate-950 dark:text-slate-50",
-              fieldErr(state, "category_id")
-                ? "border-red-300 focus:border-red-400 focus:ring-red-100 dark:border-red-800"
-                : "border-slate-200 focus:border-slate-400 focus:ring-slate-200 dark:border-slate-700",
-            )}
+            className={cn(selectBase, fieldErr(state, "category_id") && selectInvalid)}
             defaultValue={initial?.category_id}
             aria-invalid={!!fieldErr(state, "category_id")}
           >
@@ -152,9 +141,7 @@ export function RecurringForm({
             ))}
           </select>
           {fieldErr(state, "category_id") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">
-              {fieldErr(state, "category_id")}
-            </p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "category_id")}</p>
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -163,12 +150,7 @@ export function RecurringForm({
             id="bucket_id"
             name="bucket_id"
             defaultValue={defaultBucket === null ? "none" : defaultBucket}
-            className={cn(
-              "min-h-11 w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 dark:bg-slate-950 dark:text-slate-50",
-              fieldErr(state, "bucket_id")
-                ? "border-red-300 focus:border-red-400 focus:ring-red-100 dark:border-red-800"
-                : "border-slate-200 focus:border-slate-400 focus:ring-slate-200 dark:border-slate-700",
-            )}
+            className={cn(selectBase, fieldErr(state, "bucket_id") && selectInvalid)}
           >
             <option value="none">No bucket</option>
             {buckets.map((b) => (
@@ -178,7 +160,7 @@ export function RecurringForm({
             ))}
           </select>
           {fieldErr(state, "bucket_id") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">{fieldErr(state, "bucket_id")}</p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "bucket_id")}</p>
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -193,9 +175,7 @@ export function RecurringForm({
             aria-invalid={!!fieldErr(state, "next_due_at")}
           />
           {fieldErr(state, "next_due_at") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">
-              {fieldErr(state, "next_due_at")}
-            </p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "next_due_at")}</p>
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -208,11 +188,11 @@ export function RecurringForm({
             aria-invalid={!!fieldErr(state, "notes")}
           />
           {fieldErr(state, "notes") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">{fieldErr(state, "notes")}</p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "notes")}</p>
           ) : null}
         </div>
       </div>
-      {state.error ? <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p> : null}
+      {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" className="min-h-12 w-full rounded-2xl sm:w-auto" disabled={pending}>
         {pending ? "Saving…" : mode === "edit" ? "Save changes" : "Save template"}
       </Button>

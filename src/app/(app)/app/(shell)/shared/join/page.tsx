@@ -7,14 +7,14 @@ export default function JoinSharedBucketPage() {
       <div>
         <Link
           href="/app/shared"
-          className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+          className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
         >
           ← Shared
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">
           Join a shared bucket
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-gh-text-muted">
           Enter the numeric code you received from the bucket admin.
         </p>
       </div>

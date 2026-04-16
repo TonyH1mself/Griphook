@@ -21,7 +21,7 @@ export function ArchiveBucketButton({
       <Button
         type="button"
         variant="ghost"
-        className="min-h-11 w-full rounded-2xl text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 sm:w-auto"
+        className="min-h-11 w-full rounded-2xl text-gh-danger hover:bg-gh-danger-soft sm:w-auto"
         disabled={pending}
         onClick={() => {
           setError(null);
@@ -44,7 +44,7 @@ export function ArchiveBucketButton({
       >
         {pending ? "Archiving…" : "Archive bucket"}
       </Button>
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+      {error ? <p className="text-xs text-gh-error-text">{error}</p> : null}
     </div>
   );
 }

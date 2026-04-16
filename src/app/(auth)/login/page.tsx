@@ -23,21 +23,19 @@ export default async function LoginPage({
     <div>
       <Link
         href="/"
-        className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+        className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
       >
         ← Back
       </Link>
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-        Sign in
-      </h1>
-      <p className="mt-2 text-sm text-slate-500">Welcome back to GripHook.</p>
+      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-gh-text">Sign in</h1>
+      <p className="mt-2 text-sm text-gh-text-muted">Welcome back to GripHook.</p>
       {authError ? (
-        <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+        <p className="mt-4 rounded-2xl border border-gh-danger/35 bg-gh-danger-soft px-4 py-3 text-sm text-gh-error-text">
           {authError}
         </p>
       ) : null}
       <div className="mt-8">
-               <LoginForm defaultRedirect={sp.redirect} />
+        <LoginForm defaultRedirect={sp.redirect} />
       </div>
     </div>
   );

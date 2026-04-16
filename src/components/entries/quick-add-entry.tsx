@@ -15,9 +15,9 @@ export function QuickAddEntry({
   defaultBucketId?: string | null;
 }) {
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/40">
-      <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Quick add</h2>
-      <p className="mt-1 text-xs text-slate-500">Log an entry without leaving the dashboard.</p>
+    <section className="rounded-2xl border border-gh-border-subtle bg-gh-surface/90 p-4 shadow-gh-panel backdrop-blur-sm">
+      <h2 className="text-sm font-semibold text-gh-text">Quick add</h2>
+      <p className="mt-1 text-xs text-gh-text-muted">Log an entry without leaving the dashboard.</p>
       <div className="mt-4">
         <EntryForm
           categories={categories}

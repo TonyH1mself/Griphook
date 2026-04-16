@@ -19,12 +19,15 @@ function hapticTap() {
   nav.vibrate?.(10);
 }
 
+const itemInteraction =
+  "transition-[transform,background-color,color,box-shadow] duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none";
+
 export function AppBottomNav() {
   const pathname = usePathname();
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/80 bg-white/90 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90 md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-gh-border-subtle bg-gh-surface/88 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-gh-float backdrop-blur-lg md:hidden"
       aria-label="Main"
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-2">
@@ -37,10 +40,11 @@ export function AppBottomNav() {
                 prefetch
                 onPointerDown={() => hapticTap()}
                 className={cn(
-                  "flex min-h-12 min-w-[44px] flex-col items-center justify-center rounded-2xl px-1 py-2 text-[11px] font-medium transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96]",
+                  "flex min-h-12 min-w-[44px] flex-col items-center justify-center rounded-2xl px-1 py-2 text-[11px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-gh-ring focus-visible:ring-offset-2 focus-visible:ring-offset-gh-surface",
+                  itemInteraction,
                   active
-                    ? "bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900"
-                    : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-900/80 dark:hover:text-slate-200",
+                    ? "bg-gh-accent-muted text-gh-accent shadow-[inset_0_0_0_1px_rgb(106_158_148/0.35)]"
+                    : "text-gh-text-muted hover:bg-gh-surface-elevated hover:text-gh-text-secondary active:scale-[0.96]",
                 )}
               >
                 {item.label}

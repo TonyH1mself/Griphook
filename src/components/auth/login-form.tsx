@@ -66,13 +66,16 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string | null
           className="min-h-11"
         />
       </div>
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="text-sm text-gh-error-text">{error}</p> : null}
       <Button type="submit" className="min-h-11 w-full rounded-2xl" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
       </Button>
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-gh-text-muted">
         No account?{" "}
-        <Link href="/signup" className="font-medium text-slate-900 underline dark:text-white">
+        <Link
+          href="/signup"
+          className="font-medium text-gh-accent underline decoration-gh-accent/40 underline-offset-2 transition-colors hover:text-gh-accent-hover"
+        >
           Sign up
         </Link>
       </p>

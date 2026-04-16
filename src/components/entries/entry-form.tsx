@@ -26,6 +26,9 @@ function fieldErr(state: EntryActionState, key: string) {
   return state.fieldErrors?.[key];
 }
 
+const selectClass =
+  "min-h-11 w-full rounded-xl border border-gh-border bg-gh-surface-inset px-3 py-2.5 text-sm text-gh-text shadow-[inset_0_1px_2px_rgb(0_0_0/0.2)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-gh-accent/50 focus:ring-2 focus:ring-gh-ring/35 motion-reduce:transition-none";
+
 export function EntryForm({
   categories,
   buckets,
@@ -76,17 +79,17 @@ export function EntryForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <Label>Type</Label>
-          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 p-1 dark:border-slate-800">
+          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-gh-border-subtle bg-gh-surface-inset/50 p-1">
             {(["expense", "income"] as const).map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => setTxType(t)}
                 className={cn(
-                  "min-h-11 rounded-xl text-sm font-medium transition-colors",
+                  "min-h-11 rounded-xl text-sm font-medium transition-[background-color,color,box-shadow] duration-150 motion-reduce:transition-none",
                   txType === t
-                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                    : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900",
+                    ? "bg-gh-accent-muted text-gh-accent shadow-[inset_0_0_0_1px_rgb(106_158_148/0.35)]"
+                    : "text-gh-text-secondary hover:bg-gh-surface-elevated hover:text-gh-text",
                 )}
               >
                 {t === "expense" ? "Expense" : "Income"}
@@ -106,7 +109,7 @@ export function EntryForm({
             aria-invalid={!!fieldErr(state, "amount")}
           />
           {fieldErr(state, "amount") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">{fieldErr(state, "amount")}</p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "amount")}</p>
           ) : null}
         </div>
         <div className="space-y-2">
@@ -121,9 +124,7 @@ export function EntryForm({
             aria-invalid={!!fieldErr(state, "occurred_at")}
           />
           {fieldErr(state, "occurred_at") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">
-              {fieldErr(state, "occurred_at")}
-            </p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "occurred_at")}</p>
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -138,7 +139,7 @@ export function EntryForm({
             aria-invalid={!!fieldErr(state, "title")}
           />
           {fieldErr(state, "title") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">{fieldErr(state, "title")}</p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "title")}</p>
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -148,7 +149,7 @@ export function EntryForm({
             name="category_id"
             required
             defaultValue={initial?.category_id}
-            className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50"
+            className={selectClass}
             aria-invalid={!!fieldErr(state, "category_id")}
           >
             <option value="" disabled>
@@ -161,9 +162,7 @@ export function EntryForm({
             ))}
           </select>
           {fieldErr(state, "category_id") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">
-              {fieldErr(state, "category_id")}
-            </p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "category_id")}</p>
           ) : null}
         </div>
         <div className="space-y-2 sm:col-span-2">
@@ -172,7 +171,7 @@ export function EntryForm({
             id="bucket_id"
             name="bucket_id"
             defaultValue={defaultBucket === null ? "none" : defaultBucket}
-            className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50"
+            className={selectClass}
           >
             <option value="none">No bucket</option>
             {buckets.map((b) => (
@@ -182,7 +181,7 @@ export function EntryForm({
             ))}
           </select>
           {fieldErr(state, "bucket_id") ? (
-            <p className="text-xs text-red-600 dark:text-red-400">{fieldErr(state, "bucket_id")}</p>
+            <p className="text-xs text-gh-error-text">{fieldErr(state, "bucket_id")}</p>
           ) : null}
         </div>
         {variant === "default" ? (
@@ -197,7 +196,7 @@ export function EntryForm({
           </div>
         ) : null}
       </div>
-      {state.error ? <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p> : null}
+      {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" className="min-h-12 w-full rounded-2xl sm:w-auto" disabled={pending}>
         {pending ? "Saving…" : mode === "edit" ? "Save changes" : "Save entry"}
       </Button>

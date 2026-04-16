@@ -5,7 +5,7 @@ export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElem
   return (
     <label
       className={cn(
-        "block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400",
+        "block text-xs font-medium uppercase tracking-wide text-gh-text-muted",
         className,
       )}
       {...props}

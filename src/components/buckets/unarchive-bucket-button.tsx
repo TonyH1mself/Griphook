@@ -37,7 +37,7 @@ export function UnarchiveBucketButton({
       >
         {pending ? "Restoring…" : "Restore bucket"}
       </Button>
-      {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="text-xs text-gh-error-text">{error}</p> : null}
     </div>
   );
 }

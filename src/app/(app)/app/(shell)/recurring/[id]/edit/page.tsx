@@ -42,13 +42,11 @@ export default async function EditRecurringPage({ params }: { params: Promise<{ 
       <div>
         <Link
           href="/app/recurring"
-          className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+          className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
         >
           ← Recurring
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-          Edit template
-        </h1>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">Edit template</h1>
       </div>
       <RecurringForm
         categories={categories}

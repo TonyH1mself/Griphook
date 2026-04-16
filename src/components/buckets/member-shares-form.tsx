@@ -32,7 +32,7 @@ export function MemberSharesForm({ bucketId, members }: { bucketId: string; memb
   return (
     <form ref={formRef} action={action} className="space-y-4">
       <input type="hidden" name="bucket_id" value={bucketId} />
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-gh-text-muted">
         Target split of <strong>shared expenses</strong> this month (Soll). Must total 100%.
       </p>
       <ul className="space-y-3">
@@ -50,7 +50,7 @@ export function MemberSharesForm({ bucketId, members }: { bucketId: string; memb
                 defaultValue={Number(m.share_percent).toFixed(1)}
                 className="min-h-11 w-28 tabular-nums"
               />
-              <span className="text-sm text-slate-500">%</span>
+              <span className="text-sm text-gh-text-muted">%</span>
             </div>
           </li>
         ))}
@@ -77,10 +77,8 @@ export function MemberSharesForm({ bucketId, members }: { bucketId: string; memb
           {pending ? "Saving…" : "Save shares"}
         </Button>
       </div>
-      {state.error ? <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p> : null}
-      {state.ok ? (
-        <p className="text-sm text-emerald-700 dark:text-emerald-400">Shares updated.</p>
-      ) : null}
+      {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
+      {state.ok ? <p className="text-sm text-gh-positive">Shares updated.</p> : null}
     </form>
   );
 }

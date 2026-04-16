@@ -29,17 +29,17 @@ export function CategoryCreateForm() {
           autoComplete="off"
         />
         {fe(state, "name") ? (
-          <p className="text-xs text-red-600 dark:text-red-400">{fe(state, "name")}</p>
+          <p className="text-xs text-gh-error-text">{fe(state, "name")}</p>
         ) : null}
       </div>
       <Button type="submit" className="min-h-11 rounded-2xl" disabled={pending}>
         {pending ? "Adding…" : "Add category"}
       </Button>
       {state.error ? (
-        <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>
+        <p className="text-sm text-gh-error-text">{state.error}</p>
       ) : null}
       {state.ok ? (
-        <p className="text-sm text-emerald-700 dark:text-emerald-400">Category added.</p>
+        <p className="text-sm text-gh-positive">Category added.</p>
       ) : null}
     </form>
   );

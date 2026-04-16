@@ -1,5 +1,6 @@
 import { QuickAddEntry } from "@/components/entries/quick-add-entry";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { ListPanel } from "@/components/ui/list-panel";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { requireUser } from "@/lib/auth/guards";
 import { budgetHealthRows } from "@/lib/dashboard/budget-health";
@@ -19,6 +20,9 @@ function recurringDueLabel(iso: string) {
   if (days === 1) return "Due tomorrow";
   return `Due in ${days} days`;
 }
+
+const linkSubtle =
+  "text-xs font-medium text-gh-text-muted transition-colors duration-150 hover:text-gh-accent motion-reduce:transition-none";
 
 export default async function DashboardPage() {
   const { supabase, user } = await requireUser();
@@ -111,10 +115,8 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-10">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-          Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">Your month, prioritized.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Dashboard</h1>
+        <p className="mt-1 text-sm text-gh-text-muted">Your month, prioritized.</p>
       </header>
 
       {categories?.length ? (
@@ -125,36 +127,25 @@ export default async function DashboardPage() {
         <Card className="sm:col-span-1">
           <CardTitle className="text-base">Income</CardTitle>
           <CardDescription>This month</CardDescription>
-          <p className="mt-3 text-2xl font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">
-            {formatEur(month.income)}
-          </p>
+          <p className="mt-3 text-2xl font-semibold tabular-nums text-gh-positive">{formatEur(month.income)}</p>
         </Card>
         <Card className="sm:col-span-1">
           <CardTitle className="text-base">Expenses</CardTitle>
           <CardDescription>This month</CardDescription>
-          <p className="mt-3 text-2xl font-semibold tabular-nums text-rose-700 dark:text-rose-400">
-            {formatEur(month.expense)}
-          </p>
+          <p className="mt-3 text-2xl font-semibold tabular-nums text-gh-danger">{formatEur(month.expense)}</p>
         </Card>
-        <Card className="border-slate-900/10 dark:border-white/10 sm:col-span-1">
+        <Card className="border-gh-accent/25 shadow-[inset_0_0_0_1px_rgb(106_158_148/0.12)] sm:col-span-1">
           <CardTitle className="text-base">Saldo</CardTitle>
           <CardDescription>In − out</CardDescription>
-          <p className="mt-3 text-2xl font-semibold tabular-nums text-slate-900 dark:text-white">
-            {formatEur(month.balance)}
-          </p>
+          <p className="mt-3 text-2xl font-semibold tabular-nums text-gh-text">{formatEur(month.balance)}</p>
         </Card>
       </section>
 
       {health.length > 0 ? (
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-              Budget pressure
-            </h2>
-            <Link
-              href="/app/buckets"
-              className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-            >
+            <h2 className="text-sm font-semibold text-gh-text">Budget pressure</h2>
+            <Link href="/app/buckets" className={linkSubtle}>
               Buckets
             </Link>
           </div>
@@ -165,15 +156,15 @@ export default async function DashboardPage() {
                   <div>
                     <Link
                       href={`/app/buckets/${h.bucketId}`}
-                      className="text-sm font-semibold text-slate-900 dark:text-white"
+                      className="text-sm font-semibold text-gh-text transition-colors hover:text-gh-accent"
                     >
                       {h.name}
                     </Link>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-gh-text-muted">
                       {h.status === "over" ? (
-                        <span className="text-rose-700 dark:text-rose-400">Over cap</span>
+                        <span className="text-gh-danger">Over cap</span>
                       ) : h.status === "tight" ? (
-                        <span className="text-amber-800 dark:text-amber-200">Running tight</span>
+                        <span className="text-gh-warning">Running tight</span>
                       ) : (
                         "On track"
                       )}{" "}
@@ -187,9 +178,9 @@ export default async function DashboardPage() {
                     value={h.ratio > 1 ? 1 : h.ratio}
                     indicatorClassName={
                       h.status === "over"
-                        ? "bg-rose-600 dark:bg-rose-500"
+                        ? "bg-gh-danger"
                         : h.status === "tight"
-                          ? "bg-amber-500"
+                          ? "bg-gh-warning"
                           : undefined
                     }
                   />
@@ -203,17 +194,12 @@ export default async function DashboardPage() {
       {spendOnlyBuckets.length > 0 ? (
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-              Other bucket spending
-            </h2>
-            <Link
-              href="/app/buckets"
-              className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-            >
+            <h2 className="text-sm font-semibold text-gh-text">Other bucket spending</h2>
+            <Link href="/app/buckets" className={linkSubtle}>
               Buckets
             </Link>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-gh-text-muted">
             No monthly cap — still tracking expenses this month.
           </p>
           <div className="grid gap-3">
@@ -225,11 +211,11 @@ export default async function DashboardPage() {
                     <div>
                       <Link
                         href={`/app/buckets/${b.id}`}
-                        className="text-sm font-semibold text-slate-900 dark:text-white"
+                        className="text-sm font-semibold text-gh-text transition-colors hover:text-gh-accent"
                       >
                         {b.name}
                       </Link>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-gh-text-muted">
                         {b.type === "shared" ? "Shared" : "Private"} · {formatEur(spent)} expenses
                       </p>
                     </div>
@@ -243,25 +229,23 @@ export default async function DashboardPage() {
 
       {reminders && reminders.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-            Upcoming recurring
-          </h2>
-          <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200/80 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/40">
+          <h2 className="text-sm font-semibold text-gh-text">Upcoming recurring</h2>
+          <ListPanel>
             {reminders.map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{r.title}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-sm font-medium text-gh-text">{r.title}</p>
+                  <p className="text-xs text-gh-text-muted">
                     {recurringDueLabel(r.next_due_at)} · {new Date(r.next_due_at).toLocaleString()}
                   </p>
                 </div>
-                <p className="text-sm font-medium tabular-nums text-slate-700 dark:text-slate-200">
+                <p className="text-sm font-medium tabular-nums text-gh-text-secondary">
                   {formatEur(Number(r.amount))}
                 </p>
               </li>
             ))}
-          </ul>
-          <Link href="/app/recurring" className="text-xs font-medium text-slate-500 underline">
+          </ListPanel>
+          <Link href="/app/recurring" className={`${linkSubtle} underline`}>
             Manage recurring
           </Link>
         </section>
@@ -270,20 +254,15 @@ export default async function DashboardPage() {
       {sharedPreviews.length > 0 ? (
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-              Shared fairness
-            </h2>
-            <Link
-              href="/app/shared"
-              className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-            >
+            <h2 className="text-sm font-semibold text-gh-text">Shared fairness</h2>
+            <Link href="/app/shared" className={linkSubtle}>
               Shared
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {sharedPreviews.map(({ bucket, total, maxDelta, memberCount }) => (
               <Link key={bucket.id} href={`/app/shared/${bucket.id}`}>
-                <Card className="h-full transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/80">
+                <Card className="h-full transition-[background-color,box-shadow] duration-150 hover:bg-gh-surface motion-reduce:transition-none">
                   <CardTitle>{bucket.name}</CardTitle>
                   <CardDescription>
                     {memberCount} {memberCount === 1 ? "member" : "members"} · {formatEur(total)}{" "}
@@ -298,11 +277,8 @@ export default async function DashboardPage() {
 
       <section className="space-y-3">
         <div className="flex items-end justify-between gap-4">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Latest entries</h2>
-          <Link
-            href="/app/entries/new"
-            className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-          >
+          <h2 className="text-sm font-semibold text-gh-text">Latest entries</h2>
+          <Link href="/app/entries/new" className={linkSubtle}>
             Add
           </Link>
         </div>
@@ -312,18 +288,18 @@ export default async function DashboardPage() {
             <CardDescription>Start with a quick expense or income.</CardDescription>
             <Link
               href="/app/entries/new"
-              className="mt-4 inline-flex text-sm font-medium text-slate-900 underline dark:text-white"
+              className="mt-4 inline-flex text-sm font-medium text-gh-accent underline decoration-gh-accent/40 underline-offset-2 transition-colors hover:text-gh-accent-hover"
             >
               New entry
             </Link>
           </Card>
         ) : (
-          <ul className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200/80 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/40">
+          <ListPanel>
             {recent.map((e) => (
               <li key={e.id} className="flex items-center justify-between gap-4 px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{e.title}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-sm font-medium text-gh-text">{e.title}</p>
+                  <p className="text-xs text-gh-text-muted">
                     {e.categories && typeof e.categories === "object" && "name" in e.categories
                       ? String((e.categories as { name: string }).name)
                       : "—"}{" "}
@@ -333,8 +309,8 @@ export default async function DashboardPage() {
                 <p
                   className={
                     e.transaction_type === "income"
-                      ? "text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-400"
-                      : "text-sm font-semibold tabular-nums text-rose-700 dark:text-rose-400"
+                      ? "text-sm font-semibold tabular-nums text-gh-positive"
+                      : "text-sm font-semibold tabular-nums text-gh-danger"
                   }
                 >
                   {e.transaction_type === "income" ? "+" : "−"}
@@ -342,7 +318,7 @@ export default async function DashboardPage() {
                 </p>
               </li>
             ))}
-          </ul>
+          </ListPanel>
         )}
       </section>
     </div>

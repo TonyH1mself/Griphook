@@ -11,13 +11,13 @@ export function DeleteEntryButton({ entryId, title }: { entryId: string; title: 
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className="space-y-2 border-t border-slate-200 pt-6 dark:border-slate-800">
-      <p className="text-sm font-medium text-slate-900 dark:text-white">Delete entry</p>
-      <p className="text-xs text-slate-500">This cannot be undone.</p>
+    <div className="space-y-2 border-t border-gh-border-subtle pt-6">
+      <p className="text-sm font-medium text-gh-text">Delete entry</p>
+      <p className="text-xs text-gh-text-muted">This cannot be undone.</p>
       <Button
         type="button"
         variant="ghost"
-        className="min-h-11 w-full rounded-2xl text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 sm:w-auto"
+        className="min-h-11 w-full rounded-2xl text-gh-danger hover:bg-gh-danger-soft sm:w-auto"
         disabled={pending}
         onClick={() => {
           setError(null);
@@ -35,7 +35,7 @@ export function DeleteEntryButton({ entryId, title }: { entryId: string; title: 
       >
         {pending ? "Deleting…" : "Delete entry"}
       </Button>
-      {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="text-xs text-gh-error-text">{error}</p> : null}
     </div>
   );
 }

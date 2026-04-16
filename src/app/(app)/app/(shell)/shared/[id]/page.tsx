@@ -54,19 +54,17 @@ export default async function SharedBucketDetailPage({
       <div>
         <Link
           href="/app/shared"
-          className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+          className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
         >
           ← Shared
         </Link>
         {sp.rebalance === "1" ? (
-          <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
+          <p className="mt-4 rounded-2xl border border-gh-warning/30 bg-gh-warning-soft px-4 py-3 text-sm text-gh-warning">
             You joined this bucket. Ask an admin to rebalance member percentages so they total 100%.
           </p>
         ) : null}
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-          {bucket.name}
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">{bucket.name}</h1>
+        <p className="mt-1 text-sm text-gh-text-muted">
           Fairness view · this month · {formatEur(totalExpenses)} shared expenses
         </p>
       </div>
@@ -79,7 +77,7 @@ export default async function SharedBucketDetailPage({
         </CardDescription>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[520px] text-left text-sm">
-            <thead className="text-xs uppercase tracking-wide text-slate-500">
+            <thead className="text-xs uppercase tracking-wide text-gh-text-muted">
               <tr>
                 <th className="py-2 pr-4 font-medium">Member</th>
                 <th className="py-2 pr-4 font-medium">Share</th>
@@ -88,27 +86,23 @@ export default async function SharedBucketDetailPage({
                 <th className="py-2 font-medium">Δ</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+            <tbody className="divide-y divide-gh-border-subtle">
               {breakdown.map((row) => {
                 const p = profileById.get(row.userId);
                 const label = p?.display_name || p?.username || row.userId.slice(0, 8);
                 return (
                   <tr key={row.userId}>
-                    <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white">
-                      {label}
-                    </td>
-                    <td className="py-3 pr-4 tabular-nums text-slate-600 dark:text-slate-300">
+                    <td className="py-3 pr-4 font-medium text-gh-text">{label}</td>
+                    <td className="py-3 pr-4 tabular-nums text-gh-text-secondary">
                       {row.sharePercent.toFixed(1)}%
                     </td>
-                    <td className="py-3 pr-4 tabular-nums text-slate-700 dark:text-slate-200">
+                    <td className="py-3 pr-4 tabular-nums text-gh-text-secondary">
                       {formatEur(row.shareAmount)}
                     </td>
-                    <td className="py-3 pr-4 tabular-nums text-slate-700 dark:text-slate-200">
+                    <td className="py-3 pr-4 tabular-nums text-gh-text-secondary">
                       {formatEur(row.actualAmount)}
                     </td>
-                    <td className="py-3 tabular-nums text-slate-900 dark:text-white">
-                      {formatEur(row.delta)}
-                    </td>
+                    <td className="py-3 tabular-nums text-gh-text">{formatEur(row.delta)}</td>
                   </tr>
                 );
               })}

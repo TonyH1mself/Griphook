@@ -10,6 +10,9 @@ function fe(s: BucketActionState, k: string) {
   return s.fieldErrors?.[k];
 }
 
+const selectClass =
+  "min-h-11 w-full rounded-xl border border-gh-border bg-gh-surface-inset px-3 py-2.5 text-sm text-gh-text shadow-[inset_0_1px_2px_rgb(0_0_0/0.2)] outline-none transition-[border-color,box-shadow] duration-150 focus:border-gh-accent/50 focus:ring-2 focus:ring-gh-ring/35 motion-reduce:transition-none";
+
 export function BucketBudgetForm({
   bucketId,
   hasBudget,
@@ -28,15 +31,15 @@ export function BucketBudgetForm({
 
   return (
     <form action={action} className="space-y-3">
-      <div className="flex min-h-11 items-center gap-3 rounded-2xl border border-slate-200/80 px-4 py-3 dark:border-slate-800">
+      <div className="flex min-h-11 items-center gap-3 rounded-2xl border border-gh-border-subtle bg-gh-surface-inset/30 px-4 py-3 ring-1 ring-gh-border-subtle">
         <input
           id={`bdg-on-${bucketId}`}
           name="has_budget"
           type="checkbox"
           defaultChecked={hasBudget}
-          className="h-5 w-5 rounded border-slate-300"
+          className="h-5 w-5 rounded border-gh-border text-gh-accent focus:ring-gh-ring"
         />
-        <Label htmlFor={`bdg-on-${bucketId}`} className="!normal-case !text-sm !font-medium">
+        <Label htmlFor={`bdg-on-${bucketId}`} className="!normal-case !text-sm !font-medium !text-gh-text-secondary">
           Monthly budget cap (expenses only)
         </Label>
       </div>
@@ -51,7 +54,7 @@ export function BucketBudgetForm({
             className="min-h-11"
           />
           {fe(state, "budget_amount") ? (
-            <p className="text-xs text-red-600">{fe(state, "budget_amount")}</p>
+            <p className="text-xs text-gh-error-text">{fe(state, "budget_amount")}</p>
           ) : null}
         </div>
         <div className="space-y-2">
@@ -60,14 +63,14 @@ export function BucketBudgetForm({
             id={`bdg-per-${bucketId}`}
             name="budget_period"
             defaultValue={budgetPeriod === "monthly" ? "monthly" : "none"}
-            className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+            className={selectClass}
           >
             <option value="monthly">Monthly</option>
             <option value="none">None</option>
           </select>
         </div>
       </div>
-      {state.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
+      {state.error ? <p className="text-sm text-gh-error-text">{state.error}</p> : null}
       <Button type="submit" variant="secondary" className="min-h-11 rounded-2xl" disabled={pending}>
         {pending ? "Saving…" : "Save budget"}
       </Button>

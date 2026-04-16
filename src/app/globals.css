@@ -1,31 +1,95 @@
 @import "tailwindcss";
 
+/* GripHook — premium mid-dark (single theme) */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
+
+  --gh-canvas: #16181d;
+  --gh-canvas-muted: #1a1c22;
+  --gh-surface: #1f2229;
+  --gh-surface-elevated: #272a33;
+  --gh-surface-inset: #13151a;
+  --gh-border: #343842;
+  --gh-border-subtle: rgb(255 255 255 / 0.06);
+  --gh-text: #e9eaee;
+  --gh-text-secondary: #b4b8c2;
+  --gh-text-muted: #868b96;
+  --gh-accent: #6a9e94;
+  --gh-accent-hover: #5d8f86;
+  --gh-accent-muted: rgb(106 158 148 / 0.18);
+  --gh-positive: #7cb69a;
+  --gh-danger: #c27b7b;
+  --gh-error-text: #e0a0a0;
+  --gh-warning: #c9a85c;
+  --gh-ring: rgb(106 158 148 / 0.45);
+  --gh-danger-soft: rgb(194 123 123 / 0.16);
+  --gh-warning-soft: rgb(201 168 92 / 0.14);
+  --gh-info-soft: rgb(106 158 148 / 0.12);
+
+  --background: var(--gh-canvas);
+  --foreground: var(--gh-text);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-gh-canvas: var(--gh-canvas);
+  --color-gh-canvas-muted: var(--gh-canvas-muted);
+  --color-gh-surface: var(--gh-surface);
+  --color-gh-surface-elevated: var(--gh-surface-elevated);
+  --color-gh-surface-inset: var(--gh-surface-inset);
+  --color-gh-border: var(--gh-border);
+  --color-gh-border-subtle: var(--gh-border-subtle);
+  --color-gh-text: var(--gh-text);
+  --color-gh-text-secondary: var(--gh-text-secondary);
+  --color-gh-text-muted: var(--gh-text-muted);
+  --color-gh-accent: var(--gh-accent);
+  --color-gh-accent-hover: var(--gh-accent-hover);
+  --color-gh-accent-muted: var(--gh-accent-muted);
+  --color-gh-positive: var(--gh-positive);
+  --color-gh-danger: var(--gh-danger);
+  --color-gh-error-text: var(--gh-error-text);
+  --color-gh-warning: var(--gh-warning);
+  --color-gh-ring: var(--gh-ring);
+  --color-gh-danger-soft: var(--gh-danger-soft);
+  --color-gh-warning-soft: var(--gh-warning-soft);
+  --color-gh-info-soft: var(--gh-info-soft);
   --font-sans: var(--font-sans-var), ui-sans-serif, system-ui, sans-serif;
+  --shadow-gh-panel: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 6px 28px rgb(0 0 0 / 0.28);
+  --shadow-gh-float: 0 -4px 32px rgb(0 0 0 / 0.35);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #f8fafc;
-  }
+html {
+  color-scheme: dark;
+  accent-color: var(--gh-accent);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--gh-canvas);
+  background-image: linear-gradient(
+    165deg,
+    var(--gh-canvas-muted) 0%,
+    var(--gh-canvas) 42%,
+    #14151a 100%
+  );
+  background-attachment: fixed;
+  color: var(--gh-text);
   font-family: var(--font-sans-var), ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+a:focus-visible {
+  outline: 2px solid var(--gh-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 .pb-safe {

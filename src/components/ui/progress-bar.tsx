@@ -16,7 +16,7 @@ export function ProgressBar({
   return (
     <div
       className={cn(
-        "h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800",
+        "h-2 w-full overflow-hidden rounded-full bg-gh-surface-inset ring-1 ring-gh-border-subtle",
         trackClassName,
         className,
       )}
@@ -27,7 +27,8 @@ export function ProgressBar({
     >
       <div
         className={cn(
-          "h-full rounded-full bg-slate-900 transition-[width] duration-300 dark:bg-white",
+          "h-full rounded-full bg-gh-accent motion-reduce:transition-none",
+          "transition-[width] duration-300 ease-out",
           indicatorClassName,
         )}
         style={{ width: `${v * 100}%` }}
