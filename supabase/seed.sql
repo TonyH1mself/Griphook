@@ -1,16 +1,21 @@
 -- GripHook demo seed (run after migrations, e.g. `supabase db reset` picks this up if configured)
 -- Requires at least one auth user for user-scoped rows; use two sign-ups for the shared-bucket demo.
--- System categories are also applied by migration `20260415180000_seed_system_categories.sql` (required for the app).
+-- System categories are created by migration `20260415180000_seed_system_categories.sql`
+-- and renamed to the German MVP defaults by `20260416130000_system_categories_de_defaults.sql`.
 
--- System categories (idempotent; redundant if that migration ran)
+-- System categories (idempotent; redundant if the migrations above already ran)
 INSERT INTO public.categories (id, name, slug, created_by_user_id, is_system)
 VALUES
-  ('11111111-1111-1111-1111-111111111101', 'Groceries', 'system-groceries', NULL, true),
-  ('11111111-1111-1111-1111-111111111102', 'Rent', 'system-rent', NULL, true),
-  ('11111111-1111-1111-1111-111111111103', 'Salary', 'system-salary', NULL, true),
-  ('11111111-1111-1111-1111-111111111104', 'Dining out', 'system-dining', NULL, true),
-  ('11111111-1111-1111-1111-111111111105', 'Transport', 'system-transport', NULL, true)
-ON CONFLICT (id) DO NOTHING;
+  ('11111111-1111-1111-1111-111111111101', 'Lebensmittel',   'system-lebensmittel',   NULL, true),
+  ('11111111-1111-1111-1111-111111111102', 'Miete',          'system-miete',          NULL, true),
+  ('11111111-1111-1111-1111-111111111103', 'Gehalt',         'system-gehalt',         NULL, true),
+  ('11111111-1111-1111-1111-111111111104', 'Abos',           'system-abos',           NULL, true),
+  ('11111111-1111-1111-1111-111111111105', 'Transport',      'system-transport',      NULL, true),
+  ('11111111-1111-1111-1111-111111111106', 'Haushalt',       'system-haushalt',       NULL, true),
+  ('11111111-1111-1111-1111-111111111107', 'Hygieneartikel', 'system-hygieneartikel', NULL, true)
+ON CONFLICT (id) DO UPDATE
+  SET name = EXCLUDED.name,
+      slug = EXCLUDED.slug;
 
 DO $$
 DECLARE
@@ -35,9 +40,9 @@ BEGIN
   INSERT INTO public.entries (
     transaction_type, amount, title, occurred_at, created_by_user_id, category_id, bucket_id
   ) VALUES
-    ('expense', 52.30, 'Weekly groceries', date_trunc('month', now()) + interval '3 days', u1, '11111111-1111-1111-1111-111111111101', private_bucket),
-    ('expense', 18.50, 'Coffee', date_trunc('month', now()) + interval '5 days', u1, '11111111-1111-1111-1111-111111111104', private_bucket),
-    ('income', 2800.00, 'Salary', date_trunc('month', now()) + interval '1 day', u1, '11111111-1111-1111-1111-111111111103', NULL);
+    ('expense', 52.30, 'Wocheneinkauf',   date_trunc('month', now()) + interval '3 days', u1, '11111111-1111-1111-1111-111111111101', private_bucket),
+    ('expense', 12.99, 'Streaming-Abo',   date_trunc('month', now()) + interval '5 days', u1, '11111111-1111-1111-1111-111111111104', private_bucket),
+    ('income', 2800.00, 'Gehalt',         date_trunc('month', now()) + interval '1 day', u1, '11111111-1111-1111-1111-111111111103', NULL);
 
   INSERT INTO public.recurring_entry_templates (
     created_by_user_id, bucket_id, category_id, transaction_type, amount, title, frequency, next_due_at
@@ -69,7 +74,7 @@ BEGIN
   INSERT INTO public.entries (
     transaction_type, amount, title, occurred_at, created_by_user_id, category_id, bucket_id
   ) VALUES
-    ('expense', 120.00, 'Utilities', now() - interval '2 days', u1, '11111111-1111-1111-1111-111111111105', shared_bucket),
-    ('expense', 80.00, 'Groceries run', now() - interval '1 day', u2, '11111111-1111-1111-1111-111111111101', shared_bucket);
+    ('expense', 120.00, 'Nebenkosten',   now() - interval '2 days', u1, '11111111-1111-1111-1111-111111111106', shared_bucket),
+    ('expense',  80.00, 'Wocheneinkauf', now() - interval '1 day',  u2, '11111111-1111-1111-1111-111111111101', shared_bucket);
 
 END $$;

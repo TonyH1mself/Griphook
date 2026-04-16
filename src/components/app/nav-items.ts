@@ -5,7 +5,6 @@ import {
   IconCategories,
   IconDashboard,
   IconEntries,
-  IconRecurring,
   IconSettings,
 } from "./nav-icons";
 
@@ -52,14 +51,12 @@ export const primaryNav: readonly NavItem[] = [
   },
 ] as const;
 
-/** Sekundäre Navigation — Desktop-Sidebar, mobile über Topbar/Settings. */
+/**
+ * Sekundäre Navigation — Desktop-Sidebar, mobile über Topbar/Settings.
+ * Wiederkehrend ist bewusst kein eigener Nav-Eintrag mehr: Verwaltung liegt
+ * unter Einstellungen, so bleibt die Sidebar auf tägliche Nutzung fokussiert.
+ */
 export const secondaryNav: readonly NavItem[] = [
-  {
-    href: "/app/recurring",
-    label: "Wiederkehrend",
-    match: startsWith("/app/recurring"),
-    icon: IconRecurring,
-  },
   {
     href: "/app/categories",
     label: "Kategorien",

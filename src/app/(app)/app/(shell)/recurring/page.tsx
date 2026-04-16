@@ -31,10 +31,15 @@ export default async function RecurringPage({
   return (
     <div className="space-y-10">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-gh-text">Wiederkehrend</h1>
+        <Link
+          href="/app/settings"
+          className="text-sm font-medium text-gh-text-muted transition-colors hover:text-gh-accent"
+        >
+          ← Einstellungen
+        </Link>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-gh-text">Wiederkehrend</h1>
         <p className="mt-1 text-sm text-gh-text-muted">
-          Aktuell nur Vorlagen — Automatisierung lässt sich später ergänzen, ohne die Struktur zu
-          ändern.
+          Vorlagen für wiederkehrende Einnahmen und Ausgaben — Teil der App-Verwaltung.
         </p>
       </header>
 

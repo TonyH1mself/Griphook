@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { createEntry, updateEntry, type EntryActionState } from "@/server/entry-actions";
 import Link from "next/link";
-import { useActionState, useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useActionState, useId, useRef, useState, type FormEvent } from "react";
 
 type Category = { id: string; name: string };
 type Bucket = { id: string; name: string; type: string };
@@ -57,12 +57,6 @@ export function EntryForm({
   const action = mode === "edit" ? updateEntry : createEntry;
   const [state, formAction, pending] = useActionState<EntryActionState, FormData>(action, {});
 
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7794/ingest/09b0aba0-4f5a-4ca4-8763-6c4f0cd89420',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d42eb7'},body:JSON.stringify({sessionId:'d42eb7',hypothesisId:'H1-H5',location:'entry-form.tsx:useEffect[state]',message:'server-action state settled',data:{mode,pending,state_error:state.error??null,state_fieldErrors:state.fieldErrors??null,state_debug:state.__debug??null},timestamp:Date.now()})}).catch(()=>{});
-  }, [state, pending, mode]);
-  // #endregion
-
   const noCategories = categories.length === 0;
   // In edit mode an existing category_id can still be saved even if the picker is empty.
   const blockSubmit = mode === "create" && noCategories;
@@ -84,6 +78,14 @@ export function EntryForm({
 
   const defaultBucket = initial?.bucket_id ?? defaultBucketId ?? "none";
 
+  const [recurringOn, setRecurringOn] = useState(false);
+  const showRecurring = mode === "create";
+
+  const defaultNext = new Date();
+  defaultNext.setMonth(defaultNext.getMonth() + 1);
+  defaultNext.setMinutes(defaultNext.getMinutes() - defaultNext.getTimezoneOffset());
+  const defaultRecurringNextValue = defaultNext.toISOString().slice(0, 16);
+
   const validate = (fd: FormData): Record<string, string> => {
     const errs: Record<string, string> = {};
     const amount = String(fd.get("amount") ?? "").trim();
@@ -102,11 +104,22 @@ export function EntryForm({
     if (!title) errs.title = "Bezeichnung ist erforderlich.";
     if (!categoryId) errs.category_id = "Bitte eine Kategorie wählen.";
     if (!occurredAt) errs.occurred_at = "Datum ist erforderlich.";
+
+    if (showRecurring && fd.get("is_recurring") === "1") {
+      const nextDue = String(fd.get("recurring_next_due_at") ?? "").trim();
+      if (!nextDue) errs.recurring_next_due_at = "Nächste Fälligkeit ist erforderlich.";
+    }
     return errs;
   };
 
   const focusFirstError = (errs: Record<string, string>) => {
-    const order = ["amount", "occurred_at", "title", "category_id"];
+    const order = [
+      "amount",
+      "occurred_at",
+      "title",
+      "category_id",
+      "recurring_next_due_at",
+    ];
     const form = formRef.current;
     if (!form) return;
     for (const key of order) {
@@ -122,11 +135,6 @@ export function EntryForm({
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     const fd = new FormData(event.currentTarget);
     const errs = validate(fd);
-    // #region agent log
-    const selectEl = event.currentTarget.querySelector<HTMLSelectElement>('select[name="category_id"]');
-    const bucketEl = event.currentTarget.querySelector<HTMLSelectElement>('select[name="bucket_id"]');
-    fetch('http://127.0.0.1:7794/ingest/09b0aba0-4f5a-4ca4-8763-6c4f0cd89420',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d42eb7'},body:JSON.stringify({sessionId:'d42eb7',hypothesisId:'H1',location:'entry-form.tsx:handleSubmit',message:'client FormData + DOM snapshot',data:{mode,txType_state:txType,fd_transaction_type:String(fd.get('transaction_type')??''),fd_amount:String(fd.get('amount')??''),fd_title_present:(String(fd.get('title')??'').trim().length>0),fd_category_id:String(fd.get('category_id')??''),fd_category_id_len:String(fd.get('category_id')??'').length,fd_bucket_id:String(fd.get('bucket_id')??''),fd_occurred_at:String(fd.get('occurred_at')??''),dom_category_select_value:selectEl?.value??'<missing>',dom_category_selectedIndex:selectEl?.selectedIndex??-1,dom_category_optionsCount:selectEl?.options.length??-1,dom_category_selectedText:selectEl?selectEl.options[selectEl.selectedIndex]?.text??'<no-option>':'<no-select>',dom_bucket_select_value:bucketEl?.value??'<missing>',dom_bucket_selectedText:bucketEl?bucketEl.options[bucketEl.selectedIndex]?.text??'<no-option>':'<no-select>',willBlock:Object.keys(errs).length>0,clientErrors:errs,categoriesCount:categories.length,bucketsCount:buckets.length},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     if (Object.keys(errs).length > 0) {
       event.preventDefault();
       setClientErrors(errs);
@@ -345,6 +353,72 @@ export function EntryForm({
               placeholder="Zusätzlicher Kontext"
               defaultValue={initial?.notes ?? ""}
             />
+          </div>
+        ) : null}
+
+        {showRecurring ? (
+          <div className="space-y-3 sm:col-span-2">
+            <label className="flex items-start gap-3 rounded-2xl border border-gh-border-subtle bg-gh-surface-inset/40 px-4 py-3 text-sm text-gh-text-secondary transition-colors hover:border-gh-border">
+              <input
+                type="checkbox"
+                name="is_recurring"
+                value="1"
+                checked={recurringOn}
+                onChange={(e) => setRecurringOn(e.currentTarget.checked)}
+                className="mt-[3px] h-4 w-4 shrink-0 accent-gh-accent"
+              />
+              <span>
+                <span className="block font-medium text-gh-text">
+                  Wiederkehrender Eintrag
+                </span>
+                <span className="mt-0.5 block text-xs text-gh-text-muted">
+                  Legt zusätzlich eine Vorlage an, damit der Posten regelmäßig fällig wird.
+                </span>
+              </span>
+            </label>
+
+            {recurringOn ? (
+              <div className="grid gap-4 rounded-2xl border border-gh-border-subtle bg-gh-surface/70 p-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="recurring_frequency">Intervall</Label>
+                  <select
+                    id="recurring_frequency"
+                    name="recurring_frequency"
+                    defaultValue="monthly"
+                    className={selectClass}
+                  >
+                    <option value="monthly">Monatlich</option>
+                    <option value="weekly">Wöchentlich</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="recurring_next_due_at">Nächste Fälligkeit</Label>
+                  <Input
+                    id="recurring_next_due_at"
+                    name="recurring_next_due_at"
+                    type="datetime-local"
+                    defaultValue={defaultRecurringNextValue}
+                    className="min-h-11"
+                    aria-invalid={
+                      !!mergedFieldErr(state, clientErrors, "recurring_next_due_at")
+                    }
+                    aria-describedby={
+                      mergedFieldErr(state, clientErrors, "recurring_next_due_at")
+                        ? "recurring_next_due_at-error"
+                        : undefined
+                    }
+                  />
+                  {mergedFieldErr(state, clientErrors, "recurring_next_due_at") ? (
+                    <p
+                      id="recurring_next_due_at-error"
+                      className="text-xs text-gh-error-text"
+                    >
+                      {mergedFieldErr(state, clientErrors, "recurring_next_due_at")}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>

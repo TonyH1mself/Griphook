@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/app/empty-state";
+import { BucketsStatusMenu } from "@/components/buckets/buckets-status-menu";
 import { LinkButton } from "@/components/ui/link-button";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { remainingBucketBudget } from "@/lib/domain";
@@ -74,10 +75,10 @@ export default async function BucketsPage({
     spentByBucket.set(row.bucket_id, (spentByBucket.get(row.bucket_id) ?? 0) + Number(row.amount));
   }
 
-  const statusTabs: { key: StatusFilter; label: string }[] = [
-    { key: "active", label: "Aktiv" },
-    { key: "archived", label: "Archiviert" },
-    { key: "all", label: "Alle" },
+  const statusOptions: { key: StatusFilter; label: string; href: string }[] = [
+    { key: "active", label: "Aktiv", href: filterHref("active", type) },
+    { key: "archived", label: "Archiviert", href: filterHref("archived", type) },
+    { key: "all", label: "Alle", href: filterHref("all", type) },
   ];
   const typeTabs: { key: TypeFilter; label: string }[] = [
     { key: "all", label: "Alle Typen" },
@@ -94,45 +95,28 @@ export default async function BucketsPage({
             Private oder gemeinsame Töpfe — mit oder ohne Monatsbudget.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <LinkButton href="/app/buckets/new">Neuer Bucket</LinkButton>
           <LinkButton href="/app/shared/join" variant="secondary">
             Mit Code beitreten
           </LinkButton>
+          <BucketsStatusMenu active={status} options={statusOptions} />
         </div>
       </header>
 
-      <div className="flex flex-col gap-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">Status</p>
-        <div className="flex flex-wrap gap-2">
-          {statusTabs.map((t) => (
-            <Link
-              key={t.key}
-              href={filterHref(t.key, type)}
-              className={cn(
-                "inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-[background-color,color,box-shadow,border-color] duration-150 motion-reduce:transition-none",
-                status === t.key ? chipActive : chipIdle,
-              )}
-            >
-              {t.label}
-            </Link>
-          ))}
-        </div>
-        <p className="text-xs font-medium uppercase tracking-wide text-gh-text-muted">Typ</p>
-        <div className="flex flex-wrap gap-2">
-          {typeTabs.map((t) => (
-            <Link
-              key={t.key}
-              href={filterHref(status, t.key)}
-              className={cn(
-                "inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-[background-color,color,box-shadow,border-color] duration-150 motion-reduce:transition-none",
-                type === t.key ? chipActive : chipIdle,
-              )}
-            >
-              {t.label}
-            </Link>
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-2">
+        {typeTabs.map((t) => (
+          <Link
+            key={t.key}
+            href={filterHref(status, t.key)}
+            className={cn(
+              "inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-[background-color,color,box-shadow,border-color] duration-150 motion-reduce:transition-none",
+              type === t.key ? chipActive : chipIdle,
+            )}
+          >
+            {t.label}
+          </Link>
+        ))}
       </div>
 
       {!buckets?.length ? (

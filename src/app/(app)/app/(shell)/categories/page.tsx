@@ -1,7 +1,6 @@
 import { EmptyState } from "@/components/app/empty-state";
-import { CategoryArchiveToggle } from "@/components/categories/category-archive-toggle";
 import { CategoryCreateForm } from "@/components/categories/category-create-form";
-import { CategoryEditForm } from "@/components/categories/category-edit-form";
+import { CategoryRow } from "@/components/categories/category-row";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { ListPanel } from "@/components/ui/list-panel";
 import { requireUser } from "@/lib/auth/guards";
@@ -21,7 +20,7 @@ export default async function CategoriesPage() {
   const yoursArchived = categories?.filter((c) => !c.is_system && c.is_archived) ?? [];
 
   return (
-    <div className="space-y-10">
+    <div className="mx-auto w-full max-w-2xl space-y-10">
       <header>
         <Link
           href="/app/settings"
@@ -41,7 +40,7 @@ export default async function CategoriesPage() {
         <CardDescription>
           Erscheint in Auswahllisten neben den GripHook-Standards.
         </CardDescription>
-        <div className="mt-6 max-w-lg">
+        <div className="mt-6">
           <CategoryCreateForm />
         </div>
       </Card>
@@ -72,17 +71,14 @@ export default async function CategoriesPage() {
             description="Oben anlegen — sie bleiben privat für dein Konto."
           />
         ) : (
-          <ul className="space-y-3">
+          <ul className="space-y-2">
             {yoursActive.map((c) => (
-              <li
+              <CategoryRow
                 key={c.id}
-                className="rounded-2xl border border-gh-border-subtle bg-gh-surface/85 p-4 shadow-gh-panel backdrop-blur-sm"
-              >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <CategoryEditForm categoryId={c.id} initialName={c.name} />
-                  <CategoryArchiveToggle categoryId={c.id} isArchived={false} />
-                </div>
-              </li>
+                categoryId={c.id}
+                name={c.name}
+                isArchived={false}
+              />
             ))}
           </ul>
         )}
@@ -94,17 +90,9 @@ export default async function CategoriesPage() {
           <p className="text-xs text-gh-text-muted">
             In Auswahllisten ausgeblendet. Bestehende Einträge behalten ihre Zuordnung.
           </p>
-          <ul className="space-y-3">
+          <ul className="space-y-2">
             {yoursArchived.map((c) => (
-              <li
-                key={c.id}
-                className="rounded-2xl border border-gh-border-subtle bg-gh-surface-inset/40 p-4 ring-1 ring-gh-border-subtle"
-              >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm font-medium text-gh-text-secondary">{c.name}</p>
-                  <CategoryArchiveToggle categoryId={c.id} isArchived />
-                </div>
-              </li>
+              <CategoryRow key={c.id} categoryId={c.id} name={c.name} isArchived />
             ))}
           </ul>
         </section>

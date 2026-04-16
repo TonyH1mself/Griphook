@@ -51,15 +51,29 @@ export default async function SettingsPage() {
         </form>
       </Card>
 
-      <Card>
-        <CardTitle>Kategorien</CardTitle>
-        <CardDescription>
-          Eigene Kategorien für Einträge und wiederkehrende Posten anlegen oder archivieren.
-        </CardDescription>
-        <LinkButton href="/app/categories" className="mt-4 min-h-11 rounded-2xl">
-          Kategorien verwalten
-        </LinkButton>
-      </Card>
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold text-gh-text">Verwaltung</h2>
+
+        <Card>
+          <CardTitle>Kategorien</CardTitle>
+          <CardDescription>
+            Eigene Kategorien für Einträge und wiederkehrende Posten anlegen oder archivieren.
+          </CardDescription>
+          <LinkButton href="/app/categories" className="mt-4 min-h-11 rounded-2xl">
+            Kategorien verwalten
+          </LinkButton>
+        </Card>
+
+        <Card>
+          <CardTitle>Wiederkehrende Zahlungen</CardTitle>
+          <CardDescription>
+            Vorlagen für Miete, Abos, Gehalt & Co. — pausieren, bearbeiten oder neu anlegen.
+          </CardDescription>
+          <LinkButton href="/app/recurring" className="mt-4 min-h-11 rounded-2xl">
+            Wiederkehrende verwalten
+          </LinkButton>
+        </Card>
+      </section>
 
       <Card>
         <CardTitle>Kommt bald</CardTitle>

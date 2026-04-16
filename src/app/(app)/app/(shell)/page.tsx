@@ -240,9 +240,6 @@ export default async function DashboardPage() {
               </li>
             ))}
           </ListPanel>
-          <Link href="/app/recurring" className={`${linkSubtle} underline`}>
-            Wiederkehrende verwalten
-          </Link>
         </section>
       ) : null}
 
